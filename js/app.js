@@ -332,6 +332,35 @@
     if (el) { el.focus(); var val = el.value; el.value = ""; el.value = val; }
   }
 
+  /* ---------- Dymek (mobile): dotknięcie pola pokazuje czyje wyniki / opis ---------- */
+  function ensurePopover() {
+    var p = document.getElementById("cellpop");
+    if (!p) { p = document.createElement("div"); p.id = "cellpop"; document.body.appendChild(p); }
+    return p;
+  }
+  function hidePopover() { var p = document.getElementById("cellpop"); if (p) p.style.display = "none"; }
+  function showPopover(target, text) {
+    var p = ensurePopover();
+    p.innerHTML = text.split(" · ").map(function (l) { return "<div>" + esc(l) + "</div>"; }).join("");
+    p.style.display = "block";
+    var r = target.getBoundingClientRect();
+    var left = r.left + window.scrollX;
+    var maxLeft = window.scrollX + document.documentElement.clientWidth - p.offsetWidth - 6;
+    if (left > maxLeft) left = maxLeft;
+    if (left < window.scrollX + 6) left = window.scrollX + 6;
+    p.style.left = left + "px";
+    p.style.top = (r.bottom + window.scrollY + 4) + "px";
+  }
+  document.addEventListener("click", function (e) {
+    var p = document.getElementById("cellpop");
+    if (p && p.contains(e.target)) return;
+    hidePopover();
+    if (e.target.tagName === "INPUT") return;          // pole edytowalne — pozwól pisać
+    var hit = e.target.closest && e.target.closest("#cardArea [title]");
+    if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }
+  });
+  window.addEventListener("scroll", hidePopover, true);
+
   window.addEventListener("hashchange", route);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
   else route();
