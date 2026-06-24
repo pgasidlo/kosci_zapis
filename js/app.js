@@ -1,0 +1,313 @@
+/* app.js — UI i spięcie z Firebase. Wymaga window.Rules i window.DB. */
+(function () {
+  "use strict";
+  var R = window.Rules, DB = window.DB;
+
+  function $app() { return document.getElementById("app"); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function clientId() {
+    var c = localStorage.getItem("kosci_cid");
+    if (!c) { c = DB.genKey(10); localStorage.setItem("kosci_cid", c); }
+    return c;
+  }
+  function myPidFor(sid) { return localStorage.getItem("kosci_pid_" + sid); }
+  function setMyPid(sid, pid) { localStorage.setItem("kosci_pid_" + sid, pid); }
+
+  var curSid = null, curSession = null, curPresence = {}, activeTab = null;
+  var unsub = null, unsubPres = null, claimed = false, errorMsg = null, errTimer = null;
+
+  function parseHash() {
+    var m = (location.hash || "").match(/#\/s\/([A-Za-z0-9]+)/);
+    return m ? m[1] : null;
+  }
+
+  function route() {
+    if (unsub) { unsub(); unsub = null; }
+    if (unsubPres) { unsubPres(); unsubPres = null; }
+    curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
+    var sid = parseHash();
+    curSid = sid;
+    if (!sid) { renderStart(); return; }
+    $app().innerHTML = '<div class="screen"><p class="muted">Ładowanie sesji…</p></div>';
+    unsub = DB.subscribe(sid, function (s) { curSession = s; onSession(); });
+    unsubPres = DB.watchPresence(sid, function (p) { curPresence = p || {}; if (curSession) onSession(); });
+  }
+
+  function onSession() {
+    var sid = curSid;
+    if (!curSession) {
+      $app().innerHTML = '<div class="screen"><h2>Nie znaleziono gry</h2><p class="muted">Sprawdź link albo zacznij nową grę.</p><p><button class="btn btn-primary" onclick="location.hash=\'\'">Nowa gra</button></p></div>';
+      return;
+    }
+    var myPid = myPidFor(sid);
+    var players = curSession.players || {};
+    if (!myPid || !players[myPid]) { renderPick(sid); return; }
+    if (!claimed) { DB.claimPresence(sid, myPid, clientId()); claimed = true; }
+    if (!activeTab) activeTab = myPid;
+    autoFinishIfDone(sid);
+    renderGame(sid, myPid);
+  }
+
+  function autoFinishIfDone(sid) {
+    if (!curSession.meta || curSession.meta.status === "finished") return;
+    var players = curSession.players || {}, grids = curSession.grids || {}, pid;
+    for (pid in players) { if (!R.cardComplete(grids[pid] || {})) return; }
+    DB.setStatus(sid, "finished");
+  }
+
+  /* ---------- Ekran 1: Nowa gra ---------- */
+  function renderStart() {
+    var h = "";
+    h += '<div class="screen">';
+    h += "<h1>Kości — zapis</h1>";
+    h += '<p class="sub">Dodaj graczy, utwórz grę i podaj jeden link wszystkim. Każdy gra na swoim telefonie.</p>';
+    h += '<h2>Nowa gra</h2>';
+    h += '<div class="name-list" id="names"></div>';
+    h += '<div class="row" style="margin-bottom:14px"><button class="btn btn-sm" id="addName">+ dodaj gracza</button></div>';
+    h += '<button class="btn btn-primary" id="create">Utwórz grę</button>';
+    h += '<p class="err-line" id="startErr" style="display:none"></p>';
+    h += "</div>";
+    $app().innerHTML = h;
+    addNameRow("Ania"); addNameRow("Bartek");
+    document.getElementById("addName").onclick = function () { addNameRow(""); focusLastName(); };
+    document.getElementById("create").onclick = doCreate;
+  }
+  function addNameRow(val) {
+    var list = document.getElementById("names");
+    var div = document.createElement("div");
+    div.className = "name-row";
+    div.innerHTML = '<input class="name-input" placeholder="Imię gracza" value="' + esc(val) + '"><button class="btn btn-sm" title="Usuń">✕</button>';
+    div.querySelector("button").onclick = function () { div.parentNode.removeChild(div); };
+    div.querySelector("input").addEventListener("keydown", function (e) { if (e.key === "Enter") doCreate(); });
+    list.appendChild(div);
+  }
+  function focusLastName() {
+    var ins = document.querySelectorAll("#names input"); if (ins.length) ins[ins.length - 1].focus();
+  }
+  function doCreate() {
+    var ins = document.querySelectorAll("#names input"), names = [], seen = {};
+    for (var i = 0; i < ins.length; i++) {
+      var v = ins[i].value.trim();
+      if (v && !seen[v.toLowerCase()]) { names.push(v); seen[v.toLowerCase()] = 1; }
+    }
+    var err = document.getElementById("startErr");
+    if (names.length < 2) { err.textContent = "Dodaj co najmniej 2 graczy (różne imiona)."; err.style.display = "block"; return; }
+    var btn = document.getElementById("create"); btn.disabled = true; btn.textContent = "Tworzę…";
+    DB.createSession(names).then(function (sid) { location.hash = "#/s/" + sid; })
+      .catch(function (e) { btn.disabled = false; btn.textContent = "Utwórz grę"; err.textContent = "Błąd: " + e.message; err.style.display = "block"; });
+  }
+
+  /* ---------- Ekran 2: Wybór imienia ---------- */
+  function renderPick(sid) {
+    var players = curSession.players || {};
+    var h = '<div class="screen">';
+    h += "<h2>Wejdź do gry</h2>";
+    h += linkBoxHTML(sid);
+    h += '<p class="sub">Wybierz swoje imię:</p><div class="pick-grid">';
+    Object.keys(players).forEach(function (pid) {
+      var busy = curPresence[pid] && curPresence[pid] !== clientId();
+      h += '<button class="pick' + (busy ? " busy" : "") + '" data-pid="' + pid + '">' + esc(players[pid].name) + (busy ? ' <span class="muted">(zajęte)</span>' : "") + "</button>";
+    });
+    h += "</div>";
+    h += '<p class="row" style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">Nowa gra</button></p>';
+    h += "</div>";
+    $app().innerHTML = h;
+    var btns = document.querySelectorAll(".pick");
+    for (var i = 0; i < btns.length; i++) btns[i].onclick = function () {
+      var pid = this.getAttribute("data-pid");
+      setMyPid(sid, pid); claimed = false; activeTab = pid; onSession();
+    };
+    bindCopy(sid);
+  }
+
+  /* ---------- Ekran 3: Gra ---------- */
+  function renderGame(sid, myPid) {
+    var players = curSession.players || {}, grids = curSession.grids || {};
+    var finished = curSession.meta && curSession.meta.status === "finished";
+    var focus = captureFocus();
+
+    var h = '<div class="topbar"><h1 style="margin:0">Kości — zapis</h1><span class="spacer"></span>';
+    h += '<button class="btn btn-sm" id="copyBtn">Kopiuj link</button>';
+    h += '<button class="btn btn-sm" onclick="if(confirm(\'Wyjść do nowej gry?\'))location.hash=\'\'">Nowa gra</button></div>';
+
+    if (curPresence[myPid] && curPresence[myPid] !== clientId())
+      h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';
+
+    if (finished) h += rankingHTML(sid);
+
+    h += '<div class="tabs">';
+    var order = [myPid].concat(Object.keys(players).filter(function (p) { return p !== myPid; }));
+    order.forEach(function (pid) {
+      var me = pid === myPid;
+      var done = R.cardComplete(grids[pid] || {});
+      var label = me ? "JA" : esc(players[pid].name);
+      h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' + label + (done ? ' <span class="done">✓</span>' : "") + "</button>";
+    });
+    h += "</div>";
+
+    if (errorMsg) h += '<div class="toast">' + esc(errorMsg) + "</div>";
+
+    h += '<div id="cardArea">' + cardTableHTML(sid, activeTab, myPid) + "</div>";
+
+    h += '<div class="legend"><b>JA</b> = Twoja karta (edytujesz) · inne zakładki tylko podgląd. ' +
+      'Wpisz liczbę lub <b>x</b> (skreślenie = 0). Puste „≥ X” to próg od innych graczy — mniej nie wpiszesz. ' +
+      'Pola nieaktywne są wyszarzone (kolejność kolumny).</div>';
+
+    $app().innerHTML = h;
+    document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
+    var tabs = document.querySelectorAll(".tab");
+    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
+    bindCardInputs(sid, myPid);
+    restoreFocus(focus);
+  }
+
+  function cardTableHTML(sid, viewPid, myPid) {
+    var weights = (curSession.meta && curSession.meta.weights) || {};
+    var grids = curSession.grids || {};
+    var grid = grids[viewPid] || {};
+    var editable = (viewPid === myPid) && !(curSession.meta && curSession.meta.status === "finished");
+    var score = R.scoreCard(grid, weights);
+
+    var h = '<div class="scroll"><table class="card"><thead><tr><th class="fig">Wiersz / liczenie</th>';
+    R.COLS.forEach(function (c) {
+      h += '<th class="cellnum"><div class="colh">' + R.COL_LABELS[c] + '</div><div class="colhint">' + R.COL_HINT[c] + '</div><div class="colw">× ' + (weights[c] || "?") + "</div></th>";
+    });
+    h += "</tr></thead><tbody>";
+    h += secRow("Szkółka — nominały 1–6");
+    R.UPPER.forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    h += compRow("Suma szkółki", score, "szkolka", "", "tot");
+    h += compRow("Premia za szkółkę", score, "premia", "≥60→30 · ≥70→50 · ≥80→100", "tot");
+    h += '<tr class="center"><td colspan="7">─── Kreska (środek) — stąd startuje Harmonia ───</td></tr>';
+    h += dataRow("plus", grid, grids, editable, myPid, "pair");
+    h += dataRow("minus", grid, grids, editable, myPid, "pair");
+    ["strit", "full", "kareta", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    h += compRow("Suma dół", score, "dol", "", "tot");
+    h += compRow("Premia za kolumnę (+200)", score, "premia200", "szkółka ≥60 i dół bez skreśleń", "bonus");
+    h += compRow("Wynik kolumny", score, "wynik", "(szkółka+premia+dół+200) × waga", "win");
+    h += "</tbody></table></div>";
+    h += '<div class="grand"><span class="muted">Wynik łączny:</span> <span class="val">' + score.total + "</span></div>";
+    return h;
+  }
+
+  function secRow(label) {
+    return '<tr><td colspan="7" style="background:var(--surface3);font-weight:500;font-size:12px;padding:5px 7px">' + label + "</td></tr>";
+  }
+  function compRow(label, score, kind, hint, cls) {
+    var h = '<tr class="' + cls + '"><td class="fig"><span class="figname">' + label + "</span>" + (hint ? '<div class="fighint">' + hint + "</div>" : "") + "</td>";
+    R.COLS.forEach(function (c) { h += '<td class="cellnum"><span class="out">' + score.cols[c][kind] + "</span></td>"; });
+    return h + "</tr>";
+  }
+  function dataRow(row, grid, grids, editable, myPid, cls) {
+    var h = '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td class="fig"><span class="figname">' + R.ROW_LABELS[row] + '</span><div class="fighint">' + R.ROW_HINT[row] + "</div></td>";
+    R.COLS.forEach(function (c) {
+      var v = (grid[c] || {})[row];
+      h += '<td class="cellnum">' + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
+    });
+    return h + "</tr>";
+  }
+  function cellHTML(col, row, v, grid, grids, editable, myPid) {
+    if (!editable) {
+      if (R.isCross(v)) return '<span class="ro x">X</span>';
+      if (R.isEmpty(v)) return '<span class="ro muted">·</span>';
+      return '<span class="ro">' + esc(v) + "</span>";
+    }
+    if (R.isFilled(v)) {
+      var cross = R.isCross(v);
+      return '<input class="cinp' + (cross ? " crossed" : "") + '" data-col="' + col + '" data-row="' + row + '" value="' + (cross ? "X" : esc(v)) + '">';
+    }
+    if (R.isActive(grid, col, row)) {
+      var fl = R.floorFor(grids, myPid, col, row);
+      return '<input class="cinp" data-col="' + col + '" data-row="' + row + '"' + (fl > 0 ? ' placeholder="≥ ' + fl + '"' : "") + ">";
+    }
+    return '<span class="locked">·</span>';
+  }
+
+  function bindCardInputs(sid, myPid) {
+    var ins = document.querySelectorAll("#cardArea input.cinp");
+    for (var i = 0; i < ins.length; i++) {
+      ins[i].addEventListener("change", function () { commit(sid, myPid, this); });
+      ins[i].addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); this.blur(); } });
+    }
+  }
+
+  function commit(sid, myPid, input) {
+    var col = input.dataset.col, row = input.dataset.row;
+    var raw = (input.value || "").trim();
+    var grids = curSession.grids || {};
+    if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
+    if (/^x$/i.test(raw)) {
+      if (row === "plus" || row === "minus") DB.setCells(sid, myPid, col, { plus: "X", minus: "X" });
+      else DB.setCell(sid, myPid, col, row, "X");
+      return;
+    }
+    var n = Number(raw.replace(",", "."));
+    var res = R.validateCell(grids, myPid, col, row, n);
+    if (!res.ok) { showError(res.reason); return; }
+    if (row === "plus" || row === "minus") {
+      var partner = row === "plus" ? "minus" : "plus";
+      var pv = grids[myPid] && grids[myPid][col] && grids[myPid][col][partner];
+      if (R.isCross(pv)) {
+        var obj = {}; obj[row] = n; obj[partner] = null;   // odkreślenie pary
+        DB.setCells(sid, myPid, col, obj); return;
+      }
+    }
+    DB.setCell(sid, myPid, col, row, n);
+  }
+
+  function showError(msg) {
+    errorMsg = msg;
+    var myPid = myPidFor(curSid);
+    renderGame(curSid, myPid);
+    if (errTimer) clearTimeout(errTimer);
+    errTimer = setTimeout(function () { errorMsg = null; if (curSession) renderGame(curSid, myPidFor(curSid)); }, 4000);
+  }
+
+  /* ---------- Ranking ---------- */
+  function rankingHTML(sid) {
+    var players = curSession.players || {}, grids = curSession.grids || {};
+    var weights = (curSession.meta && curSession.meta.weights) || {};
+    var arr = Object.keys(players).map(function (pid) {
+      return { name: players[pid].name, total: R.scoreCard(grids[pid] || {}, weights).total };
+    });
+    arr.sort(function (a, b) { return b.total - a.total; });
+    var h = '<div class="ranking"><h2>Koniec gry — ranking</h2>';
+    arr.forEach(function (p, i) {
+      h += '<div class="rankrow"><span class="pos">' + (i + 1) + ". " + esc(p.name) + '</span><span class="pts">' + p.total + "</span></div>";
+    });
+    h += "</div>";
+    return h;
+  }
+
+  /* ---------- Link / kopiowanie ---------- */
+  function shareLink(sid) { return location.origin + location.pathname + "#/s/" + sid; }
+  function linkBoxHTML(sid) {
+    return '<div class="link-box"><span class="muted">Link dla graczy:</span> <code>' + esc(shareLink(sid)) + '</code> <button class="btn btn-sm" id="copyBtn2">Kopiuj</button></div>';
+  }
+  function bindCopy(sid) { var b = document.getElementById("copyBtn2"); if (b) b.onclick = function () { copyLink(sid, b); }; }
+  function copyLink(sid, btn) {
+    var txt = shareLink(sid);
+    function done() { var o = btn.textContent; btn.textContent = "Skopiowano ✓"; setTimeout(function () { btn.textContent = o; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { prompt("Skopiuj link:", txt); });
+    else prompt("Skopiuj link:", txt);
+  }
+
+  /* ---------- Zachowanie fokusu między renderami ---------- */
+  function captureFocus() {
+    var a = document.activeElement;
+    if (a && a.classList && a.classList.contains("cinp")) return { col: a.dataset.col, row: a.dataset.row };
+    return null;
+  }
+  function restoreFocus(f) {
+    if (!f) return;
+    var el = document.querySelector('#cardArea input.cinp[data-col="' + f.col + '"][data-row="' + f.row + '"]');
+    if (el) { el.focus(); var val = el.value; el.value = ""; el.value = val; }
+  }
+
+  window.addEventListener("hashchange", route);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
+  else route();
+})();
