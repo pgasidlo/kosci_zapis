@@ -38,3 +38,9 @@ Reguły bazy (Realtime Database → Rules):
 { "rules": { "sessions": { "$sid": { ".read": true, ".write": true } } } }
 ```
 `apiKey` w `js/db.js` jest jawny z założenia (bezpieczeństwo zapewniają reguły).
+
+## Wdrożenie
+Skrypt `deploy.ps1` podbija wersję zasobów (`?v=` w `index.html`) na znacznik czasu, commituje i wypycha — dzięki temu po zwykłym odświeżeniu w przeglądarce ładuje się najnowsza wersja (cache-busting). Użycie:
+```
+powershell -ExecutionPolicy Bypass -File deploy.ps1 "opis zmiany"
+```
