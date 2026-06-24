@@ -3,6 +3,17 @@
   "use strict";
   var R = window.Rules, DB = window.DB;
 
+  // Skrócone etykiety pod ekran telefonu (pełne nazwy idą w atrybut title).
+  var COL_SYM = { free: "", down: "↓", up: "↑", harmony: "↕", second: "2rz", anons: "A" };
+  var COL_FULL = {
+    free: "Wolne (dowolna kolejność)", down: "Dół (z góry na dół)", up: "Góra (z dołu do góry)",
+    harmony: "Harmonia (od środka w górę/dół)", second: "Drugi rzut (wpis po 2 rzutach)", anons: "Anons (zapowiedź po 1. rzucie)"
+  };
+  var ROW_SHORT = {
+    j1: "1", j2: "2", j3: "3", j4: "4", j5: "5", j6: "6",
+    plus: "+", minus: "−", strit: "strit", full: "full", kareta: "kareta", malusie: "malusie", poker: "poker"
+  };
+
   function $app() { return document.getElementById("app"); }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -153,9 +164,8 @@
 
     h += '<div id="cardArea">' + cardTableHTML(sid, activeTab, myPid) + "</div>";
 
-    h += '<div class="legend"><b>JA</b> = Twoja karta (edytujesz) · inne zakładki tylko podgląd. ' +
-      'Wpisz liczbę lub <b>x</b> (skreślenie = 0). Puste „≥ X” to próg od innych graczy — mniej nie wpiszesz. ' +
-      'Pola nieaktywne są wyszarzone (kolejność kolumny).</div>';
+    h += '<div class="legend">Wpisz liczbę lub <b>x</b> (skreślenie). „≥ X” = próg od innych graczy. ' +
+      'Kolumny: 1. wolne · ↓ dół · ↑ góra · ↕ harmonia · 2rz drugi rzut · A anons. Przytrzymaj nagłówek lub wiersz, by zobaczyć pełny opis.</div>';
 
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
@@ -172,40 +182,35 @@
     var editable = (viewPid === myPid) && !(curSession.meta && curSession.meta.status === "finished");
     var score = R.scoreCard(grid, weights);
 
-    var h = '<div class="scroll"><table class="card"><thead><tr><th class="fig">Wiersz / liczenie</th>';
+    var h = '<div class="scroll"><table class="card"><thead><tr><th class="fig"></th>';
     R.COLS.forEach(function (c) {
-      h += '<th class="cellnum"><div class="colh">' + R.COL_LABELS[c] + '</div><div class="colhint">' + R.COL_HINT[c] + '</div><div class="colw">× ' + (weights[c] || "?") + "</div></th>";
+      h += '<th title="' + esc(COL_FULL[c]) + '"><div class="csym">' + (COL_SYM[c] || "&nbsp;") + '</div><div class="cw">×' + (weights[c] || "?") + "</div></th>";
     });
     h += "</tr></thead><tbody>";
-    h += secRow("Szkółka — nominały 1–6");
     R.UPPER.forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
-    h += compRow("Suma szkółki", score, "szkolka", "", "tot");
-    h += compRow("Premia za szkółkę", score, "premia", "≥60→30 · ≥70→50 · ≥80→100", "tot");
-    h += '<tr class="center"><td colspan="7">─── Kreska (środek) — stąd startuje Harmonia ───</td></tr>';
+    h += compRow("Σ", "Suma szkółki (nominały 1–6)", score, "szkolka", "tot");
+    h += compRow("bonus", "Premia za szkółkę: ≥60→+30, ≥70→+50, ≥80→+100", score, "premia", "tot");
+    h += '<tr class="kreska"><td colspan="7"></td></tr>';
     h += dataRow("plus", grid, grids, editable, myPid, "pair");
     h += dataRow("minus", grid, grids, editable, myPid, "pair");
     ["strit", "full", "kareta", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
-    h += compRow("Suma dół", score, "dol", "", "tot");
-    h += compRow("Premia za kolumnę (+200)", score, "premia200", "szkółka ≥60 i dół bez skreśleń", "bonus");
-    h += compRow("Wynik kolumny", score, "wynik", "(szkółka+premia+dół+200) × waga", "win");
+    h += compRow("+200", "Premia za kolumnę: szkółka ≥60 i cały dół bez skreśleń", score, "premia200", "bonus");
+    h += compRow("Σ", "Wynik kolumny = (szkółka + premia + dół + 200) × waga", score, "wynik", "win");
     h += "</tbody></table></div>";
     h += '<div class="grand"><span class="muted">Wynik łączny:</span> <span class="val">' + score.total + "</span></div>";
     return h;
   }
 
-  function secRow(label) {
-    return '<tr><td colspan="7" style="background:var(--surface3);font-weight:500;font-size:12px;padding:5px 7px">' + label + "</td></tr>";
-  }
-  function compRow(label, score, kind, hint, cls) {
-    var h = '<tr class="' + cls + '"><td class="fig"><span class="figname">' + label + "</span>" + (hint ? '<div class="fighint">' + hint + "</div>" : "") + "</td>";
-    R.COLS.forEach(function (c) { h += '<td class="cellnum"><span class="out">' + score.cols[c][kind] + "</span></td>"; });
+  function compRow(label, title, score, kind, cls) {
+    var h = '<tr class="' + cls + '"><td class="fig" title="' + esc(title) + '">' + label + "</td>";
+    R.COLS.forEach(function (c) { h += "<td><span class=\"out\">" + score.cols[c][kind] + "</span></td>"; });
     return h + "</tr>";
   }
   function dataRow(row, grid, grids, editable, myPid, cls) {
-    var h = '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td class="fig"><span class="figname">' + R.ROW_LABELS[row] + '</span><div class="fighint">' + R.ROW_HINT[row] + "</div></td>";
+    var h = '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td class="fig" title="' + esc(R.ROW_LABELS[row] + " — " + R.ROW_HINT[row]) + '">' + ROW_SHORT[row] + "</td>";
     R.COLS.forEach(function (c) {
       var v = (grid[c] || {})[row];
-      h += '<td class="cellnum">' + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
+      h += "<td>" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
     });
     return h + "</tr>";
   }
