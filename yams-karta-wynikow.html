@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Kości — karta wyników (wariant z wagami i anonsem)</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg-primary:#ffffff;
+  --bg-secondary:#f4f2ec;
+  --bg-tertiary:#ece9e1;
+  --bg-info:#e6f1fb;
+  --bg-warning:#faeeda;
+  --bg-success:#e1f5ee;
+  --t-primary:#1f1e1b;
+  --t-secondary:#6b6a64;
+  --t-tertiary:#9b9a92;
+  --t-info:#185fa5;
+  --t-warning:#854f0b;
+  --t-success:#0f6e56;
+  --t-danger:#a32d2d;
+  --bd-tertiary:rgba(0,0,0,0.12);
+  --bd-secondary:rgba(0,0,0,0.24);
+  --r-md:8px;
+  --r-lg:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#faf9f5;color:var(--t-primary);font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;line-height:1.55;padding:24px 16px}
+.page{max-width:1060px;margin:0 auto;background:var(--bg-primary);border:1px solid var(--bd-tertiary);border-radius:var(--r-lg);padding:26px 30px}
+h1{font-size:23px;font-weight:600;margin:0 0 4px}
+.sub{color:var(--t-secondary);font-size:14px;margin:0 0 18px}
+.note{font-size:12.5px;color:var(--t-warning);background:var(--bg-warning);border-radius:var(--r-md);padding:8px 12px;margin:0 0 18px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.toolbar button{font-family:inherit;font-size:13px;padding:8px 14px;border:0.5px solid var(--bd-secondary);border-radius:var(--r-md);background:transparent;color:var(--t-primary);cursor:pointer}
+.toolbar button:hover{background:var(--bg-secondary)}
+.toolbar button.primary{background:var(--bg-info);color:var(--t-info);border-color:transparent}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;font-size:13.5px;min-width:780px;width:100%}
+th,td{border:0.5px solid var(--bd-tertiary);padding:5px 7px;vertical-align:middle}
+thead th{background:var(--bg-secondary);font-weight:500;text-align:center;font-size:12.5px}
+.colname{font-weight:500;font-size:13px}
+.colrule{font-size:11px;color:var(--t-secondary);margin:2px 0 4px}
+.fig{width:250px;text-align:left}
+.figname{font-weight:500}
+.figrule{font-size:11.5px;color:var(--t-secondary);margin-top:2px}
+.cinp{width:62px;height:30px;text-align:center;font-size:13px;padding:2px;border:1px solid #d8d5cc;border-radius:6px;background:#fff;color:var(--t-primary);font-family:inherit}
+.cinp:focus{outline:none;border-color:#378add;box-shadow:0 0 0 2px rgba(55,138,221,0.25)}
+.cinp.crossed{color:var(--t-danger);font-weight:600;border-color:#e0b4b4;background:#fcf2f2}
+.cinp::placeholder{color:#bdbab1;font-size:11px}
+.wsel{font-family:inherit;font-size:12px;padding:2px 4px;border:1px solid #d8d5cc;border-radius:6px;background:#fff}
+td.num,th.num{text-align:center;width:78px}
+.tot{background:var(--bg-secondary)}
+.tot .figname{font-weight:500}
+.bonus{background:var(--bg-success)}
+.bonus .figname{font-weight:500;color:var(--t-success)}
+.bonus .out{color:var(--t-success)}
+.win{background:var(--bg-info)}
+.win .figname{font-weight:600;color:var(--t-info)}
+.out{display:block;text-align:center;font-weight:500}
+.win .out{color:var(--t-info)}
+.sectit td{background:var(--bg-tertiary);font-weight:500;font-size:12.5px}
+.center td{background:#efe9dc;text-align:center;font-weight:500;font-size:12px;color:var(--t-secondary);border-top:2px solid var(--bd-secondary);border-bottom:2px solid var(--bd-secondary)}
+.pair td{background:#f0eef8}
+.badge{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:var(--r-md);background:var(--bg-warning);color:var(--t-warning);margin-left:6px}
+.grand{display:flex;align-items:baseline;gap:10px;margin-top:16px}
+.grand .lab{font-size:14px;color:var(--t-secondary)}
+.grand .val{font-size:28px;font-weight:600}
+.legend{margin-top:16px;font-size:12px;color:var(--t-secondary);line-height:1.7}
+.legend b{font-weight:500;color:var(--t-primary)}
+@media print{body{background:#fff;padding:0}.page{border:none;border-radius:0;max-width:none;padding:0}.toolbar{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Karta wyników — gra w kości (wariant z wagami i anonsem)</h1>
+  <p class="sub">Każdy gracz ma własną kartę. 6 kolumn z wylosowaną wagą 8–18. Wynik kolumny = (suma jej pól) × waga. Sumy liczą się automatycznie.</p>
+
+  <div class="note">Wpisz liczbę albo <b>x</b>, żeby skreślić pole (pokaże się „X", liczy się 0). W aplikacji puste pole pokaże podpowiedź „≥ X" = najwyższa wartość wpisana w to pole przez innych graczy (mniej wpisać nie można).</div>
+
+  <div class="toolbar">
+    <button id="btn-roll" class="primary" type="button">Losuj wagi kolumn</button>
+    <button id="btn-clear" type="button">Wyczyść pola</button>
+    <button id="btn-print" type="button">Drukuj / zapisz PDF</button>
+  </div>
+
+  <div class="scroll">
+  <table id="yt">
+    <thead>
+      <tr>
+        <th class="fig">Wiersz / sposób liczenia</th>
+        <th class="num"><div class="colname">Wolne ↕</div><div class="colrule">dowolna kolejność</div><label>waga <select class="wsel" data-col="free"></select></label></th>
+        <th class="num"><div class="colname">Dół ↓</div><div class="colrule">z góry na dół</div><label>waga <select class="wsel" data-col="down"></select></label></th>
+        <th class="num"><div class="colname">Góra ↑</div><div class="colrule">z dołu do góry</div><label>waga <select class="wsel" data-col="up"></select></label></th>
+        <th class="num"><div class="colname">Harmonia ◇</div><div class="colrule">od środka — w górę i w dół</div><label>waga <select class="wsel" data-col="harmony"></select></label></th>
+        <th class="num"><div class="colname">Drugi rzut ②</div><div class="colrule">wpis po 2 rzutach</div><label>waga <select class="wsel" data-col="second"></select></label></th>
+        <th class="num"><div class="colname">Anons ✦</div><div class="colrule">zapowiedź po 1. rzucie</div><label>waga <select class="wsel" data-col="anons"></select></label></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="sectit"><td colspan="7">Szkółka — nominały 1–6</td></tr>
+      <tr><td class="fig"><span class="figname">Jedynki (1)</span><div class="figrule">suma jedynek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr><td class="fig"><span class="figname">Dwójki (2)</span><div class="figrule">suma dwójek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr><td class="fig"><span class="figname">Trójki (3)</span><div class="figrule">suma trójek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr><td class="fig"><span class="figname">Czwórki (4)</span><div class="figrule">suma czwórek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr><td class="fig"><span class="figname">Piątki (5)</span><div class="figrule">suma piątek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr><td class="fig"><span class="figname">Szóstki (6)</span><div class="figrule">suma szóstek</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="upper"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="upper"></td></tr>
+      <tr class="tot"><td class="fig"><span class="figname">Suma szkółki</span><div class="figrule">liczy się sama: nominały 1–6</div></td><td class="num"><span class="out" data-out data-col="free" data-kind="szkolka">0</span></td><td class="num"><span class="out" data-out data-col="down" data-kind="szkolka">0</span></td><td class="num"><span class="out" data-out data-col="up" data-kind="szkolka">0</span></td><td class="num"><span class="out" data-out data-col="harmony" data-kind="szkolka">0</span></td><td class="num"><span class="out" data-out data-col="second" data-kind="szkolka">0</span></td><td class="num"><span class="out" data-out data-col="anons" data-kind="szkolka">0</span></td></tr>
+      <tr class="tot"><td class="fig"><span class="figname">Premia za szkółkę</span><div class="figrule">liczy się sama: ≥60 → +30, ≥70 → +50, ≥80 → +100</div></td><td class="num"><span class="out" data-out data-col="free" data-kind="premia">0</span></td><td class="num"><span class="out" data-out data-col="down" data-kind="premia">0</span></td><td class="num"><span class="out" data-out data-col="up" data-kind="premia">0</span></td><td class="num"><span class="out" data-out data-col="harmony" data-kind="premia">0</span></td><td class="num"><span class="out" data-out data-col="second" data-kind="premia">0</span></td><td class="num"><span class="out" data-out data-col="anons" data-kind="premia">0</span></td></tr>
+
+      <tr class="center"><td colspan="7">─── Kreska (środek planszy) — stąd startuje Harmonia, w górę i w dół ───</td></tr>
+
+      <tr class="pair"><td class="fig"><span class="figname">+ (większe)</span><div class="figrule">suma 5 kości · ≥ 20 · większe niż „−"<span class="badge">powiązane</span></div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="plus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="plus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="plus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="plus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="plus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="plus"></td></tr>
+      <tr class="pair"><td class="fig"><span class="figname">− (mniejsze)</span><div class="figrule">suma 5 kości · ≥ 20 · mniejsze niż „+" · skreślenie zeruje oba<span class="badge">powiązane</span></div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="minus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="minus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="minus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="minus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="minus"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="minus"></td></tr>
+      <tr><td class="fig"><span class="figname">Strit</span><div class="figrule">mały lub duży — suma 5 kości + 30</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="strit"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="strit"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="strit"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="strit"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="strit"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="strit"></td></tr>
+      <tr><td class="fig"><span class="figname">Full</span><div class="figrule">suma 5 kości + 20</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="full"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="full"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="full"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="full"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="full"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="full"></td></tr>
+      <tr><td class="fig"><span class="figname">Kareta</span><div class="figrule">4 jednakowe — suma 5 kości + 30</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="kareta"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="kareta"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="kareta"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="kareta"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="kareta"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="kareta"></td></tr>
+      <tr><td class="fig"><span class="figname">Malusie</span><div class="figrule">im mniej oczek tym lepiej: 5→75, 6→70, 7→65, 8→60 (100 − 5×oczka)</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="malusie"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="malusie"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="malusie"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="malusie"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="malusie"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="malusie"></td></tr>
+      <tr><td class="fig"><span class="figname">Poker</span><div class="figrule">5 jednakowych — suma 5 kości + 70</div></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="free" data-sec="lower" data-cat="poker"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="down" data-sec="lower" data-cat="poker"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="up" data-sec="lower" data-cat="poker"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="harmony" data-sec="lower" data-cat="poker"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="second" data-sec="lower" data-cat="poker"></td><td class="num"><input class="cinp" type="text" inputmode="numeric" data-col="anons" data-sec="lower" data-cat="poker"></td></tr>
+
+      <tr class="tot"><td class="fig"><span class="figname">Suma dół</span><div class="figrule">+, −, strit, full, kareta, malusie, poker</div></td><td class="num"><span class="out" data-out data-col="free" data-kind="dolsum">0</span></td><td class="num"><span class="out" data-out data-col="down" data-kind="dolsum">0</span></td><td class="num"><span class="out" data-out data-col="up" data-kind="dolsum">0</span></td><td class="num"><span class="out" data-out data-col="harmony" data-kind="dolsum">0</span></td><td class="num"><span class="out" data-out data-col="second" data-kind="dolsum">0</span></td><td class="num"><span class="out" data-out data-col="anons" data-kind="dolsum">0</span></td></tr>
+      <tr class="bonus"><td class="fig"><span class="figname">Premia za kolumnę (+200)</span><div class="figrule">+200, jeśli szkółka ≥ 60 i dół wypełniony bez skreśleń</div></td><td class="num"><span class="out" data-out data-col="free" data-kind="premia200">0</span></td><td class="num"><span class="out" data-out data-col="down" data-kind="premia200">0</span></td><td class="num"><span class="out" data-out data-col="up" data-kind="premia200">0</span></td><td class="num"><span class="out" data-out data-col="harmony" data-kind="premia200">0</span></td><td class="num"><span class="out" data-out data-col="second" data-kind="premia200">0</span></td><td class="num"><span class="out" data-out data-col="anons" data-kind="premia200">0</span></td></tr>
+      <tr class="win"><td class="fig"><span class="figname">Wynik kolumny</span><div class="figrule">(szkółka + premia + dół + premia 200) × waga</div></td><td class="num"><span class="out" data-out data-col="free" data-kind="wynik">0</span></td><td class="num"><span class="out" data-out data-col="down" data-kind="wynik">0</span></td><td class="num"><span class="out" data-out data-col="up" data-kind="wynik">0</span></td><td class="num"><span class="out" data-out data-col="harmony" data-kind="wynik">0</span></td><td class="num"><span class="out" data-out data-col="second" data-kind="wynik">0</span></td><td class="num"><span class="out" data-out data-col="anons" data-kind="wynik">0</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="grand"><span class="lab">Wynik łączny (suma kolumn):</span><span class="val" id="grand">0</span></div>
+
+  <div class="legend">
+    <b>Karty</b> — każdy gracz ma własną kartę; karty są zależne: w danym polu możesz wpisać wartość <b>nie niższą</b> niż najwyższa, którą w to samo pole wpisali inni (w aplikacji na żywo jako „≥ X").<br>
+    <b>Kreska</b> — wiersze „+" i „−" są pod kreską, niezależne od figur (strit, full, kareta, malusie, poker).<br>
+    <b>Kolumny</b> — Wolne: dowolna kolejność · Dół: od góry do dołu · Góra: od dołu do góry · Harmonia: od środka w górę albo w dół · Drugi rzut: wpis po 2 rzutach · Anons: po 1. rzucie deklarujesz „Anons".<br>
+    <b>Wagi</b> — każda kolumna ma jedną z wartości 8, 10, 12, 14, 16, 18 (losowo na początku gry).<br>
+    <b>Premia za szkółkę</b> — od sumy 1–6: ≥60 → +30, ≥70 → +50, ≥80 → +100.<br>
+    <b>Premia za kolumnę +200</b> — gdy szkółka ≥ 60 i cały dół wypełniony bez ani jednego skreślenia. Wpada do sumy kolumny (× waga).<br>
+    <b>Punktacja</b> — Strit (mały/duży): suma + 30 · Full: suma + 20 · Kareta (4 jedn.): suma + 30 · Poker (5 jedn.): suma + 70 · Malusie: im mniej oczek tym lepiej (5 = 75 … 100 − 5×oczka) · „+"/„−": obie ≥ 20, „+" &gt; „−".<br>
+    <b>Skreślanie</b> — wpisz „x"; pole pokaże „X" i liczy się za 0. W parze „+"/„−" skreślenie jednego zeruje oba — i takie pole przestaje wyznaczać próg „≥" dla innych. W kolumnach z kolejnością tylko na bieżącej granicy; w Anonsie po zapowiedzi; wyjątek: Drugi rzut — można skreślić nawet po 3. rzucie.
+  </div>
+</div>
+
+<script>
+(function(){
+  var COLS=['free','down','up','harmony','second','anons'];
+  var WEIGHTS=[8,10,12,14,16,18];
+  var table=document.getElementById('yt');
+  function isCross(v){return /^\s*[xX]\s*$/.test(v||'')}
+  function isEmpty(v){return !/\S/.test(v||'')}
+  function num(v){if(isCross(v))return 0;var n=parseFloat(v);return isFinite(n)?n:0}
+  function fillSelects(){
+    document.querySelectorAll('select.wsel').forEach(function(s,idx){
+      s.innerHTML='';
+      WEIGHTS.forEach(function(w){var o=document.createElement('option');o.value=w;o.textContent=w;s.appendChild(o)});
+      s.value=WEIGHTS[idx];
+    });
+  }
+  function weightOf(col){var s=document.querySelector('select.wsel[data-col="'+col+'"]');return s?num(s.value):0}
+  function bonus(u){return u>=80?100:(u>=70?50:(u>=60?30:0))}
+  function lowerCleanComplete(col){
+    var inps=document.querySelectorAll('input[data-col="'+col+'"][data-sec="lower"]');
+    if(!inps.length)return false;
+    for(var k=0;k<inps.length;k++){var v=inps[k].value;if(isCross(v)||isEmpty(v))return false}
+    return true;
+  }
+  function setOut(col,kind,val){var e=document.querySelector('[data-out][data-col="'+col+'"][data-kind="'+kind+'"]');if(e)e.textContent=Math.round(val)}
+  function recompute(){
+    var grand=0;
+    COLS.forEach(function(col){
+      var up=0;
+      document.querySelectorAll('input[data-col="'+col+'"][data-sec="upper"]').forEach(function(i){up+=num(i.value)});
+      var dol=0;
+      document.querySelectorAll('input[data-col="'+col+'"][data-sec="lower"]').forEach(function(i){dol+=num(i.value)});
+      var pr=bonus(up);
+      var p200=(up>=60&&lowerCleanComplete(col))?200:0;
+      var wynik=(up+pr+dol+p200)*weightOf(col);
+      setOut(col,'szkolka',up);setOut(col,'premia',pr);setOut(col,'dolsum',dol);setOut(col,'premia200',p200);setOut(col,'wynik',wynik);
+      grand+=wynik;
+    });
+    document.getElementById('grand').textContent=Math.round(grand);
+  }
+  function shuffleWeights(){
+    var a=WEIGHTS.slice();
+    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+    COLS.forEach(function(col,idx){var s=document.querySelector('select.wsel[data-col="'+col+'"]');if(s)s.value=a[idx]});
+    recompute();
+  }
+  fillSelects();
+  table.addEventListener('input',function(e){
+    var el=e.target;
+    if(el&&el.classList&&el.classList.contains('cinp')){
+      if(isCross(el.value)){el.value='X';el.classList.add('crossed')}
+      else{el.classList.remove('crossed')}
+    }
+    recompute();
+  });
+  document.querySelectorAll('select.wsel').forEach(function(s){s.addEventListener('change',recompute)});
+  document.getElementById('btn-roll').addEventListener('click',shuffleWeights);
+  document.getElementById('btn-clear').addEventListener('click',function(){table.querySelectorAll('input.cinp').forEach(function(i){i.value='';i.classList.remove('crossed')});recompute()});
+  document.getElementById('btn-print').addEventListener('click',function(){window.print()});
+  recompute();
+})();
+</script>
+</body>
+</html>
