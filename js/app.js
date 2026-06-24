@@ -150,13 +150,22 @@
 
     if (finished) h += rankingHTML(sid);
 
+    var weights = (curSession.meta && curSession.meta.weights) || {};
+    var totals = {}, maxT = 0;
+    Object.keys(players).forEach(function (pid) {
+      var t = R.scoreCard(grids[pid] || {}, weights).total;
+      totals[pid] = t; if (t > maxT) maxT = t;
+    });
     h += '<div class="tabs">';
     var order = [myPid].concat(Object.keys(players).filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
       var me = pid === myPid;
       var done = R.cardComplete(grids[pid] || {});
       var label = me ? "JA" : esc(players[pid].name);
-      h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' + label + (done ? ' <span class="done">✓</span>' : "") + "</button>";
+      var lead = maxT > 0 && totals[pid] === maxT;
+      h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
+        label + ' <span class="tscore' + (lead ? " lead" : "") + '">' + (lead ? "★ " : "") + totals[pid] + "</span>" +
+        (done ? ' <span class="done">✓</span>' : "") + "</button>";
     });
     h += "</div>";
 
@@ -210,9 +219,20 @@
     var h = '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td class="fig" title="' + esc(R.ROW_LABELS[row] + " — " + R.ROW_HINT[row]) + '">' + ROW_SHORT[row] + "</td>";
     R.COLS.forEach(function (c) {
       var v = (grid[c] || {})[row];
-      h += "<td>" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
+      var tip = cellOwners(grids, c, row);
+      h += "<td" + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
     });
     return h + "</tr>";
+  }
+  // Podpowiedź: czyje wyniki są już w tym polu (wszyscy gracze, którzy je wypełnili).
+  function cellOwners(grids, col, row) {
+    var players = (curSession && curSession.players) || {};
+    var parts = [];
+    Object.keys(players).forEach(function (pid) {
+      var v = grids[pid] && grids[pid][col] && grids[pid][col][row];
+      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + (R.isCross(v) ? "X" : v));
+    });
+    return parts.join(" · ");
   }
   function cellHTML(col, row, v, grid, grids, editable, myPid) {
     if (!editable) {
