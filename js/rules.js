@@ -160,14 +160,17 @@
     return true;
   }
 
+  // Skreślenie pola: które wiersze trzeba skreślić razem (para „+”/„−” skreśla się wspólnie).
+  function crossedRows(row) { return (row === "plus" || row === "minus") ? ["plus", "minus"] : [row]; }
+
   window.Rules = {
     COLS: COLS, COL_LABELS: COL_LABELS, COL_HINT: COL_HINT,
     ROWS: ROWS, ROW_LABELS: ROW_LABELS, ROW_HINT: ROW_HINT,
-    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS,
+    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS, MAXES: MAXES,
     isCross: isCross, isEmpty: isEmpty, isFilled: isFilled, numVal: numVal,
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,
     scoreColumn: scoreColumn, scoreCard: scoreCard,
     activeRows: activeRows, isActive: isActive,
-    floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete
+    floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows
   };
 })();

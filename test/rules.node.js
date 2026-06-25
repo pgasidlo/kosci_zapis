@@ -1,4 +1,6 @@
-/* Testy silnika reguł (uruchamiane w Node, bez przeglądarki). */
+/* Testy silnika reguł (Node, bez przeglądarki).
+   Pokrywają: strukturę, wagi, premie, punktację, premię +200, kolejność kolumn,
+   próg ≥X, walidację (max, +/-), kompletność karty. */
 const fs = require("fs");
 global.window = {};
 eval(fs.readFileSync(__dirname + "/../js/rules.js", "utf8"));
@@ -6,65 +8,112 @@ const R = window.Rules;
 
 let pass = 0, fail = 0;
 function ok(c, m) { if (c) pass++; else { fail++; console.log("FAIL: " + m); } }
+function eq(a, b, m) { ok(a === b, m + " (oczekiwano " + b + ", jest " + a + ")"); }
 
-// wagi
+function emptyGrid() { var g = {}; R.COLS.forEach(function (c) { g[c] = {}; }); return g; }
+function lowerNums() { var o = {}; R.LOWER.forEach(function (r) { o[r] = (r === "plus" || r === "minus") ? 20 : 5; }); return o; }
+function fullGrid() { var g = {}; R.COLS.forEach(function (c) { g[c] = {}; R.ROWS.forEach(function (r) { g[c][r] = (r === "plus" || r === "minus") ? 20 : 5; }); }); return g; }
+
+/* ---- struktura ---- */
+eq(R.COLS.length, 6, "6 kolumn");
+eq(R.ROWS.length, 13, "13 wierszy");
+eq(R.UPPER.length, 6, "6 wierszy szkółki");
+eq(R.LOWER.length, 7, "7 wierszy dołu");
+ok(R.ROWS.every(function (r) { return R.MAXES[r] != null; }), "każdy wiersz ma zdefiniowany max");
+
+/* ---- wagi ---- */
 const w = R.shuffleWeights();
-ok(R.COLS.every(c => R.WEIGHTS.indexOf(w[c]) >= 0), "wagi z dozwolonego zbioru");
-ok(new Set(R.COLS.map(c => w[c])).size === 6, "wagi unikalne (permutacja)");
+ok(R.COLS.every(function (c) { return R.WEIGHTS.indexOf(w[c]) >= 0; }), "wagi z dozwolonego zbioru 8–18");
+eq(new Set(R.COLS.map(function (c) { return w[c]; })).size, 6, "wagi unikalne (permutacja)");
 
-// premia szkółki
-ok(R.bonusSzkolka(59) === 0 && R.bonusSzkolka(60) === 30 && R.bonusSzkolka(70) === 50 && R.bonusSzkolka(80) === 100, "progi premii szkółki");
+/* ---- premia za szkółkę ---- */
+[[0, 0], [59, 0], [60, 30], [69, 30], [70, 50], [79, 50], [80, 100], [105, 100]]
+  .forEach(function (p) { eq(R.bonusSzkolka(p[0]), p[1], "premia szkółki(" + p[0] + ")"); });
 
-// scoreColumn
-const grid = { free: {} };
-["j1","j2","j3","j4","j5","j6"].forEach((r, i) => grid.free[r] = (i + 1) * 5); // 5..30, suma=105
-let s = R.scoreColumn(grid, "free", 10);
-ok(s.szkolka === 105, "suma szkółki = " + s.szkolka);
-ok(s.premia === 100, "premia 100");
-ok(s.dol === 0 && s.premia200 === 0, "brak dołu -> 0");
-ok(s.wynik === (105 + 100) * 10, "wynik = (szk+prem)*waga = " + s.wynik);
+/* ---- scoreColumn / scoreCard ---- */
+var g = emptyGrid();
+["j1", "j2", "j3", "j4", "j5", "j6"].forEach(function (r, i) { g.free[r] = (i + 1) * 5; }); // 5..30 = 105
+var s = R.scoreColumn(g, "free", 10);
+eq(s.szkolka, 105, "suma szkółki");
+eq(s.premia, 100, "premia 100 przy 105");
+eq(s.dol, 0, "dół 0 gdy pusto");
+eq(s.wynik, (105 + 100) * 10, "wynik = (szkółka+premia+dół+200)×waga");
 
-// premia +200
-const g2 = { down: {} };
-["j1","j2","j3","j4","j5","j6"].forEach(r => g2.down[r] = 10); // suma=60
-["plus","minus","strit","full","kareta","malusie","poker"].forEach(r => g2.down[r] = 20);
-let s2 = R.scoreColumn(g2, "down", 8);
-ok(s2.szkolka === 60 && s2.premia200 === 200, "premia +200 gdy szkółka>=60 i dół pełny bez skreśleń");
-g2.down.poker = "X";
-ok(R.scoreColumn(g2, "down", 8).premia200 === 0, "premia +200 znika przy skreśleniu w dole");
+var gx = emptyGrid(); gx.free.j6 = 30; gx.free.j5 = "X";
+eq(R.scoreColumn(gx, "free", 8).szkolka, 30, "X i puste liczą się jako 0 w sumie");
 
-// aktywne pola
-const empty = { down: {}, up: {}, free: {}, harmony: {} };
-ok(R.activeRows(empty, "free").length === 13, "Wolne: wszystkie pola aktywne");
-ok(R.activeRows(empty, "down")[0] === "j1", "Dół: najwyższe pole");
-ok(R.activeRows(empty, "up")[0] === "poker", "Góra: najniższe pole");
-let ah = R.activeRows(empty, "harmony");
-ok(ah.length === 2 && ah.indexOf("j6") >= 0 && ah.indexOf("plus") >= 0, "Harmonia: dwa pola przy kresce");
-let ah2 = R.activeRows({ harmony: { j6: 30 } }, "harmony");
-ok(ah2.indexOf("j5") >= 0 && ah2.indexOf("plus") >= 0, "Harmonia: granica w górę przesuwa się na j5");
-ok(R.activeRows({ down: { j1: 5 } }, "down")[0] === "j2", "Dół: po wpisaniu j1 aktywne j2");
+var card = emptyGrid(); card.free.j6 = 30; card.down.j6 = 30;
+eq(R.scoreCard(card, { free: 10, down: 8, up: 0, harmony: 0, second: 0, anons: 0 }).total,
+  30 * 10 + 30 * 8, "wynik łączny = suma wyników kolumn");
 
-// walidacja: próg ≥ X
-const grids = { pA: { free: { full: 30 } }, pB: {} };
-ok(R.validateCell(grids, "pB", "free", "full", 25).ok === false, "próg blokuje 25 < 30");
-ok(R.validateCell(grids, "pB", "free", "full", 30).ok === true, "próg dopuszcza 30");
-ok(R.validateCell(grids, "pB", "free", "full", "X").ok === true, "skreślenie zawsze dozwolone");
+/* ---- premia +200 ---- */
+function col(upper) { return Object.assign({}, upper, lowerNums()); }
+eq(R.scoreColumn({ d: col({ j6: 30, j5: 25, j1: 5 }) }, "d", 8).premia200, 200, "+200: szkółka 60 i dół pełny bez skreśleń");
+eq(R.scoreColumn({ d: col({ j6: 30, j5: 24 }) }, "d", 8).premia200, 0, "+200=0: szkółka 54 (<60)");
+var cCross = col({ j6: 30, j5: 25, j1: 5 }); cCross.poker = "X";
+eq(R.scoreColumn({ d: cCross }, "d", 8).premia200, 0, "+200=0: skreślenie w dole");
+var cEmpty = col({ j6: 30, j5: 25, j1: 5 }); delete cEmpty.poker;
+eq(R.scoreColumn({ d: cEmpty }, "d", 8).premia200, 0, "+200=0: puste pole w dole");
+var cUp = col({ j1: "X", j2: 10, j3: 15, j4: 20, j5: 25, j6: 30 }); // szkółka = 100
+eq(R.scoreColumn({ d: cUp }, "d", 8).premia200, 200, "+200: skreślenie U GÓRY dozwolone gdy szkółka ≥60");
 
-// walidacja: +/-
-ok(R.validateCell({ pB: {} }, "pB", "free", "plus", 19).ok === false, "„+” < 20 zablokowane");
-ok(R.validateCell({ pB: { free: { minus: 25 } } }, "pB", "free", "plus", 24).ok === false, "„+” musi być > „−”");
-ok(R.validateCell({ pB: { free: { minus: 25 } } }, "pB", "free", "plus", 30).ok === true, "„+” 30 > „−” 25 OK");
+/* ---- aktywne pola (kolejność kolumn) ---- */
+eq(R.activeRows(emptyGrid(), "free").length, 13, "Wolne: wszystkie 13 aktywne");
+eq(R.activeRows(emptyGrid(), "second").length, 13, "Drugi rzut: wolna kolejność");
+eq(R.activeRows(emptyGrid(), "anons").length, 13, "Anons: wolna kolejność");
+eq(R.activeRows(emptyGrid(), "down")[0], "j1", "Dół: najwyższe puste");
+eq(R.activeRows({ down: { j1: 5 } }, "down")[0], "j2", "Dół: po j1 → j2");
+eq(R.activeRows({ down: { j1: "X" } }, "down")[0], "j2", "Dół: skreślenie też przesuwa granicę");
+eq(R.activeRows(emptyGrid(), "up")[0], "poker", "Góra: najniższe puste");
+eq(R.activeRows({ up: { poker: 30 } }, "up")[0], "malusie", "Góra: po poker → malusie");
+var ah = R.activeRows(emptyGrid(), "harmony");
+ok(ah.length === 2 && ah.indexOf("j6") >= 0 && ah.indexOf("plus") >= 0, "Harmonia: start [j6, plus]");
+ok(R.activeRows({ harmony: { j6: 30 } }, "harmony").indexOf("j5") >= 0, "Harmonia: po j6 w górę → j5");
+ok(R.activeRows({ harmony: { plus: 20 } }, "harmony").indexOf("minus") >= 0, "Harmonia: po plus w dół → minus");
+var hUp = { harmony: {} }; R.UPPER.forEach(function (r) { hUp.harmony[r] = 5; });
+var ahUp = R.activeRows(hUp, "harmony");
+ok(ahUp.length === 1 && ahUp[0] === "plus", "Harmonia: górna wyczerpana → tylko dół");
+eq(R.activeRows(fullGrid(), "harmony").length, 0, "Harmonia: pełna kolumna → brak aktywnych");
+eq(R.activeRows(fullGrid(), "down").length, 0, "Dół: pełna kolumna → brak aktywnych");
+ok(R.isActive(emptyGrid(), "down", "j1") && !R.isActive(emptyGrid(), "down", "j2"), "isActive zgodne z activeRows");
 
-// kompletność
-ok(R.cardComplete({}) === false, "pusta karta = niekompletna");
+/* ---- próg ≥X (floorFor) ---- */
+var grids = { A: { free: { full: 30 } }, B: { free: { full: 40 } }, C: {} };
+eq(R.floorFor(grids, "C", "free", "full"), 40, "floor = najwyższa wartość innych");
+eq(R.floorFor(grids, "B", "free", "full"), 30, "floor pomija własną wartość");
+eq(R.floorFor({ A: { free: { full: "X" } }, B: { free: { full: 25 } } }, "C", "free", "full"), 25, "floor: skreślone u innych nie liczy");
+eq(R.floorFor({ A: { free: { full: "X" } } }, "C", "free", "full"), 0, "floor: same skreślenia → 0");
 
-// maksima punktów
-ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 6).ok === false, "jedynki max 5 (6 zablokowane)");
-ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 5).ok === true, "jedynki 5 OK");
-ok(R.validateCell({ pB: {} }, "pB", "free", "poker", 101).ok === false, "poker max 100");
-ok(R.validateCell({ pB: {} }, "pB", "free", "malusie", 80).ok === false, "malusie max 75");
-ok(R.validateCell({ pB: {} }, "pB", "free", "full", 50).ok === true, "full 50 OK (poker jako full)");
-ok(R.validateCell({ pB: {} }, "pB", "free", "full", 51).ok === false, "full max 50");
+/* ---- walidacja ---- */
+ok(R.validateCell({}, "A", "free", "full", "X").ok, "X zawsze dozwolone");
+ok(!R.validateCell({}, "A", "free", "full", "").ok, "puste → błąd");
+ok(!R.validateCell({}, "A", "free", "full", -1).ok, "ujemne → błąd");
+ok(!R.validateCell({}, "A", "free", "full", "abc").ok, "nie-liczba → błąd");
+R.ROWS.forEach(function (r) {
+  ok(R.validateCell({}, "A", "free", r, R.MAXES[r]).ok, "max OK: " + r + " = " + R.MAXES[r]);
+  ok(!R.validateCell({}, "A", "free", r, R.MAXES[r] + 1).ok, "powyżej max → błąd: " + r);
+});
+ok(!R.validateCell({ A: { free: { full: 30 } }, B: {} }, "B", "free", "full", 25).ok, "floor blokuje 25 < 30");
+ok(R.validateCell({ A: { free: { full: 30 } }, B: {} }, "B", "free", "full", 30).ok, "floor dopuszcza 30");
+ok(R.validateCell({ A: { free: { full: 30 } }, B: {} }, "B", "free", "full", "X").ok, "X dozwolone nawet poniżej floor");
+ok(!R.validateCell({ A: {} }, "A", "free", "plus", 19).ok, "plus < 20 → błąd");
+ok(R.validateCell({ A: {} }, "A", "free", "plus", 20).ok, "plus = 20 OK");
+ok(!R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 24).ok, "„+” musi być > „−”");
+ok(R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 30).ok, "„+” 30 > „−” 25 OK");
+ok(!R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 25).ok, "„−” musi być < „+”");
+ok(R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 22).ok, "„−” 22 < „+” 25 OK");
+
+/* ---- kompletność karty ---- */
+ok(!R.cardComplete(emptyGrid()), "pusta karta → niekompletna");
+ok(!R.cardComplete({ free: { j1: 5 } }), "częściowa karta → niekompletna");
+ok(R.cardComplete(fullGrid()), "pełna karta (liczby) → kompletna");
+var fgX = fullGrid(); fgX.free.j1 = "X";
+ok(R.cardComplete(fgX), "pełna karta ze skreśleniem → kompletna");
+
+/* ---- skreślanie pary +/- ---- */
+ok(R.crossedRows("plus").length === 2 && R.crossedRows("plus").indexOf("minus") >= 0, "skreślenie „+” skreśla też „−”");
+ok(R.crossedRows("minus").indexOf("plus") >= 0, "skreślenie „−” skreśla też „+”");
+eq(R.crossedRows("strit").length, 1, "skreślenie figury nie dotyka innych pól");
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

@@ -1,0 +1,103 @@
+# Zapis i liczenie punktów
+
+Szczegóły techniczne sposobu zapisu, punktacji, zależności między polami i walidacji. Reguły gry dla graczy: [yams-zasady.md](yams-zasady.md). Opis aplikacji: [opis.md](opis.md).
+
+Cała logika jest w `js/rules.js` (czysta, bez DOM/Firebase) i pokryta testami `test/rules.node.js`.
+
+## Model danych (Firebase Realtime Database)
+```
+sessions/{klucz}
+  meta:     { status: "active"|"finished", createdAt, wagi: { <kolumna>: 8..18 } }
+  players:  { <pid>: { name } }            # pid = "p0","p1",… nadane przy tworzeniu
+  grids:    { <pid>: { <kolumna>: { <wiersz>: wartość } } }
+  presence: { <pid>: <clientId> }          # obecność do ostrzeżenia o zajętym imieniu
+```
+- **Kolumny:** `free` (Wolne), `down` (Dół ↓), `up` (Góra ↑), `harmony` (Harmonia ↕), `second` (Drugi rzut), `anons` (Anons).
+- **Wiersze (13, od góry):** `j1`,`j2`,`j3`,`j4`,`j5`,`j6`, `plus`, `minus`, `strit`, `full`, `kareta`, `malusie`, `poker`.
+- **Wagi** losowane raz przy tworzeniu gry (permutacja `8,10,12,14,16,18`), wspólne dla wszystkich graczy.
+
+## Wartość pola
+Pole ma jedną z trzech postaci:
+- **liczba** — wpisany wynik,
+- **`"X"`** — pole skreślone (liczy się jako 0),
+- **puste** (brak klucza) — jeszcze niewypełnione.
+
+W sumach `X` oraz puste liczą się jako **0**.
+
+## Kolejność wpisywania (aktywne pola)
+W danym momencie odblokowane są tylko pola, które wolno legalnie wypełnić (`Rules.activeRows`):
+- **Wolne, Drugi rzut, Anons** — każde puste pole (dowolna kolejność).
+- **Dół** — tylko najwyższe puste pole (z góry na dół).
+- **Góra** — tylko najniższe puste pole (z dołu do góry).
+- **Harmonia** — dwa pola na granicy przy kresce (między `j6` a `plus`): jedno w górę (od `j6` wzwyż) i jedno w dół (od `plus` w dół). Blok rośnie od środka.
+
+Skreślenie (`X`) liczy się jak wypełnienie — w kolumnach z kolejnością przesuwa granicę dalej.
+
+## Punktacja figur (wartości wpisywane przez graczy)
+| Wiersz | Warunek | Wartość | Max |
+|---|---|---|---|
+| `j1`…`j6` | suma oczek danego nominału | n × nominał | 5, 10, 15, 20, 25, 30 |
+| `plus` (+) | suma 5 kości | ≥ 20, „+" > „−" | 30 |
+| `minus` (−) | suma 5 kości | ≥ 20, „−" < „+" | 30 |
+| `strit` | mały lub duży | suma 5 kości + 30 | 50 |
+| `full` | trójka + para (pięć jednakowych też liczy się jako full) | suma 5 kości + 20 | 50 |
+| `kareta` | 4 jednakowe | suma 5 kości + 30 | 60 |
+| `malusie` | im mniej oczek, tym lepiej | 100 − 5 × (suma oczek) | 75 |
+| `poker` | 5 jednakowych | suma 5 kości + 70 | 100 |
+
+Maksima (`Rules.MAXES`) wyliczone z najwyższych możliwych rzutów; służą do walidacji (patrz niżej).
+
+## Premie
+### Premia za szkółkę (osobno w każdej kolumnie)
+Od sumy nominałów `j1…j6` (`Rules.bonusSzkolka`):
+- ≥ 60 → **+30**
+- ≥ 70 → **+50**
+- ≥ 80 → **+100**
+
+### Premia za kolumnę: +200
+Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
+- suma szkółki ≥ 60 — **skreślenie u góry jest dozwolone** (skreślone pole liczy się jako 0; liczy się tylko końcowa suma);
+- **cały dół** (`plus, minus, strit, full, kareta, malusie, poker`) wypełniony liczbami, **bez ani jednego skreślenia** i bez pustych.
+
+> Założenie do potwierdzenia: +200 wchodzi do sumy kolumny i jest mnożone przez wagę (jak premia za szkółkę). Jeśli ma być płaskie (poza ×waga) — jedna zmiana we wzorze niżej.
+
+## Wynik
+- **Wynik kolumny** = `(suma szkółki + premia za szkółkę + suma dołu + premia 200) × waga` (`Rules.scoreColumn`).
+- **Wynik łączny gracza** = suma wyników 6 kolumn (`Rules.scoreCard`).
+
+## Zależności między polami
+- **Próg „≥ X" (między graczami)** — w danym polu wartość liczbowa nie może być niższa niż najwyższa, jaką w to samo pole wpisali **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Zależność jest międzykartowa i przeliczana na żywo z aktualnego stanu sesji.
+- **Para „+" / „−"** — obie wartości ≥ 20, „+" > „−"; **skreślenie jednego skreśla oba** (`Rules.crossedRows`). Odkreślenie jednego z pary czyści drugie pole, by gracz wpisał je ponownie (logika w `app.js`).
+- **Premia za szkółkę** zależy od sumy `j1…j6` w tej samej kolumnie.
+- **Premia +200** zależy od szkółki i kompletności dołu w tej samej kolumnie.
+
+## Reguły walidacji (`Rules.validateCell`)
+Wpis jest przyjmowany tylko, gdy przejdzie walidację:
+1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).
+2. Wartość liczbowa, nieujemna (puste / nie-liczba → odrzucone).
+3. Nie większa niż **max** wiersza (tabela wyżej).
+4. Nie mniejsza niż **próg ≥ X** od innych graczy.
+5. Dla `plus`/`minus`: ≥ 20 oraz zachowana relacja „+" > „−".
+
+Edycja własnych, już wypełnionych pól jest dozwolona — po zmianie obowiązuje ta sama walidacja.
+
+## Skreślanie
+- Wpisanie `x`/`X` (wielkość liter bez znaczenia) → pole pokazuje „X" i liczy się jako **0**.
+- Skreślić można dobrowolnie lub z konieczności.
+- Para „+"/„−" skreśla się wspólnie; skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
+- (Reguły kolejności skreślania przy stole — Anons po zapowiedzi, Drugi rzut nawet po 3. rzucie — są po stronie graczy; aplikacja ich nie pilnuje.)
+
+## Koniec gry
+Karta gracza jest **kompletna**, gdy każde z 78 pól (6 kolumn × 13 wierszy) jest wypełnione lub skreślone (`Rules.cardComplete`). Gdy kompletne są karty wszystkich graczy, `meta.status` przechodzi na `finished` i u każdego pojawia się ranking (suma punktów malejąco).
+
+## Pokrycie testami
+`test/rules.node.js` (uruchomienie: `node test/rules.node.js`) sprawdza **wszystkie reguły silnika**:
+- struktura (kolumny, wiersze, maksima), losowanie wag (permutacja),
+- premia za szkółkę (wszystkie progi), suma szkółki/dołu, wynik kolumny i łączny, traktowanie `X`/pustych jako 0,
+- premia +200 (spełniona; <60; skreślenie w dole; puste w dole; skreślenie u góry dozwolone),
+- aktywne pola każdej kolumny (Wolne/Drugi rzut/Anons, Dół, Góra, Harmonia — w tym granice i wyczerpanie),
+- próg ≥ X (max innych, pominięcie siebie, ignorowanie `X`),
+- walidacja (X zawsze; puste/ujemne/nie-liczba; max i max+1 dla każdego wiersza; próg; reguły +/−),
+- skreślanie pary +/−, kompletność karty.
+
+Poza silnikiem (logika UI w `app.js`, weryfikowana ręcznie w przeglądarce): synchronizacja na żywo, dymki, zakładki/sumy, zmiana gracza, odkreślanie pary, podpięcie Firebase.

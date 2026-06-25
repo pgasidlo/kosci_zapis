@@ -289,7 +289,8 @@
     var grids = curSession.grids || {};
     if (raw === "") { DB.clearCell(sid, myPid, col, row); return; }
     if (/^x$/i.test(raw)) {
-      if (row === "plus" || row === "minus") DB.setCells(sid, myPid, col, { plus: "X", minus: "X" });
+      var rows = R.crossedRows(row);
+      if (rows.length > 1) { var o = {}; rows.forEach(function (rr) { o[rr] = "X"; }); DB.setCells(sid, myPid, col, o); }
       else DB.setCell(sid, myPid, col, row, "X");
       return;
     }

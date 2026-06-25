@@ -26,6 +26,8 @@ Pełne zasady: [yams-zasady.md](yams-zasady.md).
 - `js/db.js` — warstwa Firebase (sesje, zapisy, obecność).
 - `js/app.js` — UI: ekrany, zakładki, walidacja na żywo.
 - `css/styles.css` — style (jasny motyw).
+- `opis.md` — opis aplikacji, założenia, logika. `zapis.md` — sposób zapisu, punktacja, zależności, walidacja.
+- `test/rules.node.js` — testy silnika reguł (`node test/rules.node.js`).
 - `yams-karta-wynikow.html` — wcześniejszy prototyp jednej karty (referencja).
 
 ## Uruchomienie lokalne
