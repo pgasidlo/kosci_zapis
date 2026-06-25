@@ -83,7 +83,7 @@
     h += '<p class="err-line" id="startErr" style="display:none"></p>';
     h += "</div>";
     $app().innerHTML = h;
-    addNameRow("Ania"); addNameRow("Bartek");
+    addNameRow("Żaneta"); addNameRow("Anna"); addNameRow("Piotr"); addNameRow("Michał");
     document.getElementById("addName").onclick = function () { addNameRow(""); focusLastName(); };
     document.getElementById("create").onclick = doCreate;
   }
@@ -143,6 +143,7 @@
 
     var h = '<div class="topbar"><h1 style="margin:0">Kości — zapis</h1><span class="spacer"></span>';
     h += '<button class="btn btn-sm" id="copyBtn">Kopiuj link</button>';
+    h += '<button class="btn btn-sm" id="changeBtn">Zmień gracza</button>';
     h += '<button class="btn btn-sm" onclick="if(confirm(\'Wyjść do nowej gry?\'))location.hash=\'\'">Nowa gra</button></div>';
 
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
@@ -178,6 +179,13 @@
 
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
+    document.getElementById("changeBtn").onclick = function () {
+      if (!confirm("Zmienić gracza? Zwolni to Twoje imię dla innych.")) return;
+      DB.releasePresence(sid, myPid);
+      localStorage.removeItem("kosci_pid_" + sid);
+      claimed = false; activeTab = null;
+      onSession();
+    };
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
@@ -234,6 +242,17 @@
     });
     return parts.join(" · ");
   }
+  // To samo, ale bez własnych wpisów — do dymka podczas wpisywania (tylko inni gracze).
+  function cellOwnersOthers(grids, col, row, myPid) {
+    var players = (curSession && curSession.players) || {};
+    var parts = [];
+    Object.keys(players).forEach(function (pid) {
+      if (pid === myPid) return;
+      var v = grids[pid] && grids[pid][col] && grids[pid][col][row];
+      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + (R.isCross(v) ? "X" : v));
+    });
+    return parts.join(" · ");
+  }
   function cellHTML(col, row, v, grid, grids, editable, myPid) {
     if (!editable) {
       if (R.isCross(v)) return '<span class="ro x">X</span>';
@@ -256,6 +275,11 @@
     for (var i = 0; i < ins.length; i++) {
       ins[i].addEventListener("change", function () { commit(sid, myPid, this); });
       ins[i].addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); this.blur(); } });
+      ins[i].addEventListener("focus", function () {
+        var txt = cellOwnersOthers(curSession.grids || {}, this.dataset.col, this.dataset.row, myPid);
+        if (txt) showPopover(this, txt, true); else hidePopover();
+      });
+      ins[i].addEventListener("blur", hidePopover);
     }
   }
 
@@ -339,7 +363,7 @@
     return p;
   }
   function hidePopover() { var p = document.getElementById("cellpop"); if (p) p.style.display = "none"; }
-  function showPopover(target, text) {
+  function showPopover(target, text, above) {
     var p = ensurePopover();
     p.innerHTML = text.split(" · ").map(function (l) { return "<div>" + esc(l) + "</div>"; }).join("");
     p.style.display = "block";
@@ -348,14 +372,21 @@
     var maxLeft = window.scrollX + document.documentElement.clientWidth - p.offsetWidth - 6;
     if (left > maxLeft) left = maxLeft;
     if (left < window.scrollX + 6) left = window.scrollX + 6;
+    var top;
+    if (above) {                                  // nad polem — nie zasłania wpisywania
+      top = r.top + window.scrollY - p.offsetHeight - 6;
+      if (top < window.scrollY + 2) top = r.bottom + window.scrollY + 6;
+    } else {
+      top = r.bottom + window.scrollY + 4;
+    }
     p.style.left = left + "px";
-    p.style.top = (r.bottom + window.scrollY + 4) + "px";
+    p.style.top = top + "px";
   }
   document.addEventListener("click", function (e) {
     var p = document.getElementById("cellpop");
     if (p && p.contains(e.target)) return;
+    if (e.target.tagName === "INPUT") return;          // input — dymek obsługuje focus/blur
     hidePopover();
-    if (e.target.tagName === "INPUT") return;          // pole edytowalne — pozwól pisać
     var hit = e.target.closest && e.target.closest("#cardArea [title]");
     if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }
   });

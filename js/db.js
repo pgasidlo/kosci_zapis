@@ -69,9 +69,13 @@
     var handler = ref.on("value", function (snap) { cb(snap.val() || {}); });
     return function () { ref.off("value", handler); };
   }
+  function releasePresence(sid, pid) {
+    return db.ref("sessions/" + sid + "/presence/" + pid).remove();
+  }
 
   window.DB = {
     genKey: genKey,
+    releasePresence: releasePresence,
     createSession: createSession,
     subscribe: subscribe,
     setCell: setCell,

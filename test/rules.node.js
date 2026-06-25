@@ -58,5 +58,11 @@ ok(R.validateCell({ pB: { free: { minus: 25 } } }, "pB", "free", "plus", 30).ok 
 // kompletność
 ok(R.cardComplete({}) === false, "pusta karta = niekompletna");
 
+// maksima punktów
+ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 6).ok === false, "jedynki max 5 (6 zablokowane)");
+ok(R.validateCell({ pB: {} }, "pB", "free", "j1", 5).ok === true, "jedynki 5 OK");
+ok(R.validateCell({ pB: {} }, "pB", "free", "poker", 101).ok === false, "poker max 100");
+ok(R.validateCell({ pB: {} }, "pB", "free", "malusie", 80).ok === false, "malusie max 75");
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

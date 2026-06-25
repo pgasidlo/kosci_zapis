@@ -29,6 +29,11 @@
   var UPPER = ["j1","j2","j3","j4","j5","j6"];                 // indeksy 0..5
   var LOWER = ["plus","minus","strit","full","kareta","malusie","poker"]; // 6..12
   var WEIGHTS = [8, 10, 12, 14, 16, 18];
+  // Maksymalna możliwa liczba punktów w danym wierszu (walidacja wpisu).
+  var MAXES = {
+    j1: 5, j2: 10, j3: 15, j4: 20, j5: 25, j6: 30,
+    plus: 30, minus: 30, strit: 50, full: 48, kareta: 60, malusie: 75, poker: 100
+  };
 
   function isCross(v) { return v === "X" || v === "x"; }
   function isEmpty(v) { return v === undefined || v === null || v === ""; }
@@ -127,6 +132,7 @@
     if (isEmpty(value)) return { ok: false, reason: "puste pole" };
     var n = Number(value);
     if (!isFinite(n) || n < 0) return { ok: false, reason: "niepoprawna liczba" };
+    if (MAXES[row] != null && n > MAXES[row]) return { ok: false, reason: "za dużo — max " + MAXES[row] };
 
     var fl = floorFor(allGrids, pid, col, row);
     if (n < fl) return { ok: false, reason: "za nisko — min. " + fl };
