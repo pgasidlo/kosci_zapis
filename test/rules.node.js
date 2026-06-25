@@ -117,6 +117,9 @@ ok(!R.validateCell({}, "A", "free", "strit", 46).ok && !R.validateCell({}, "A", 
 ok(R.validateCell({}, "A", "free", "j2", 0).ok && R.validateCell({}, "A", "free", "j2", 4).ok, "dwójki: 0 i 4 OK");
 ok(!R.validateCell({}, "A", "free", "j2", 5).ok, "dwójki = 5 (nie-wielokrotność 2) → błąd");
 ok(R.validateCell({}, "A", "free", "j3", 15).ok && !R.validateCell({}, "A", "free", "j3", 14).ok, "trójki: 15 OK, 14 błąd");
+ok(R.validateCell({}, "A", "free", "malusie", 75).ok && R.validateCell({}, "A", "free", "malusie", 60).ok, "malusie 5–8 oczek (75 i 60) OK");
+ok(!R.validateCell({}, "A", "free", "malusie", 55).ok, "malusie 9 oczek (55) → błąd (skreśl)");
+ok(!R.validateCell({}, "A", "free", "malusie", 76).ok, "malusie powyżej 75 → błąd");
 
 /* ---- kompletność karty ---- */
 ok(!R.cardComplete(emptyGrid()), "pusta karta → niekompletna");

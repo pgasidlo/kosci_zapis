@@ -150,6 +150,7 @@
     var n = Number(value);
     if (!isFinite(n) || n < 0) return { ok: false, reason: "niepoprawna liczba" };
     if (n !== Math.round(n)) return { ok: false, reason: "musi być liczbą całkowitą" };
+    if (row === "malusie" && (n < 60 || n > 75)) return { ok: false, reason: "malusie: tylko 5–8 oczek (więcej — skreśl)" };
     if (MAXES[row] != null && n > MAXES[row]) return { ok: false, reason: "za dużo — max " + MAXES[row] };
     if (MINS[row] != null && n < MINS[row]) {
       var minMsg = isPipRow(row) ? (pipsFromValue(row, MINS[row]) + " oczek") : MINS[row];
