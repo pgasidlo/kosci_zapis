@@ -237,6 +237,17 @@
     return out;
   }
 
+  // Liczba kolumn, w których gracz `myPid` dubluje przeciwnika `oppPid` (stars)
+  // lub jest przez niego dublowany (skulls) — z gotowych standings.
+  function pairMarks(standings, myPid, oppPid) {
+    var cols = (standings[myPid] && standings[myPid].cols) || {}, stars = 0, skulls = 0;
+    for (var i = 0; i < COLS.length; i++) {
+      var c = cols[COLS[i]], d = c && c.diffs[oppPid];
+      if (d && d.doubled) { if (d.value > 0) stars++; else skulls++; }
+    }
+    return { stars: stars, skulls: skulls };
+  }
+
   window.Rules = {
     COLS: COLS, COL_LABELS: COL_LABELS, COL_HINT: COL_HINT,
     ROWS: ROWS, ROW_LABELS: ROW_LABELS, ROW_HINT: ROW_HINT,
@@ -247,6 +258,6 @@
     scoreColumn: scoreColumn, scoreCard: scoreCard,
     activeRows: activeRows, isActive: isActive,
     floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows,
-    isDoubled: isDoubled, columnBases: columnBases, gameStandings: gameStandings
+    isDoubled: isDoubled, columnBases: columnBases, gameStandings: gameStandings, pairMarks: pairMarks
   };
 })();

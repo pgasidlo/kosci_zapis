@@ -77,7 +77,7 @@ Silnik reguł (`js/rules.js`) ma pełny zestaw testów jednostkowych w `test/rul
 - próg „≥ X" (max innych, pominięcie siebie, ignorowanie `X`),
 - walidacja (X zawsze; całkowita/nieujemna; max i min; wielokrotności szkółki/poker/kareta; strit 45/50; malusie 5–8; +/−),
 - skreślanie pary +/−, kompletność karty,
-- pojedynki head-to-head: dublowanie (≥2×, 0 vs >0), różnice, finał kolumny, suma końcowa, flagi ☠/★.
+- pojedynki head-to-head: `columnBases`, dublowanie (≥2×, 0 vs >0), różnice, finał kolumny, suma końcowa, `pairMarks` (liczba ☠/★).
 
 Poza silnikiem (logika UI w `app.js`, weryfikowana ręcznie w przeglądarce): synchronizacja na żywo, dymki, zakładki/sumy, zmiana gracza, odkreślanie pary, podpięcie Firebase.
 

@@ -21,15 +21,6 @@
     '<circle cx="9.9" cy="11" r="1.4" fill="#d11"/><circle cx="14.1" cy="11" r="1.4" fill="#d11"/>' +
     '<path d="M12 12.8l-.8 1.6h1.6z" fill="#d11"/></svg>';
 
-  // Liczba kolumn, w których JA dubluję przeciwnika (gwiazdki) / przeciwnik dubluje mnie (czaszki).
-  function pairMarks(standings, myPid, oppPid) {
-    var cols = standings[myPid].cols, stars = 0, skulls = 0;
-    for (var i = 0; i < R.COLS.length; i++) {
-      var d = cols[R.COLS[i]].diffs[oppPid];
-      if (d && d.doubled) { if (d.value > 0) stars++; else skulls++; }
-    }
-    return { stars: stars, skulls: skulls };
-  }
   function marksHTML(m) {
     if (!m.stars && !m.skulls) return "";
     var s = "", i;
@@ -185,7 +176,7 @@
     order.forEach(function (pid) {
       var me = pid === myPid, st = standings[pid];
       var done = R.cardComplete(grids[pid] || {});
-      var marks = me ? "" : marksHTML(pairMarks(standings, myPid, pid));
+      var marks = me ? "" : marksHTML(R.pairMarks(standings, myPid, pid));
       var lead = st.total === maxT;
       h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
         marks + esc(players[pid].name) + ' <span class="tscore' + (lead ? " lead" : "") + '">' + st.total + "</span>" +
@@ -390,7 +381,7 @@
     arr.sort(function (a, b) { return b.total - a.total; });
     var h = '<div class="ranking"><h2>Koniec gry — ranking</h2>';
     arr.forEach(function (p, i) {
-      var marks = p.pid === myPid ? "" : marksHTML(pairMarks(standings, myPid, p.pid));
+      var marks = p.pid === myPid ? "" : marksHTML(R.pairMarks(standings, myPid, p.pid));
       h += '<div class="rankrow"><span class="pos">' + (i + 1) + ". " + marks + esc(p.name) + '</span><span class="pts">' + p.total + "</span></div>";
     });
     h += "</div>";

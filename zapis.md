@@ -59,7 +59,7 @@ Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy `myPid`
 - **★ złota gwiazdka** ×N — w N kolumnach **ja dubluję** tego przeciwnika.
 - **☠ czerwona czaszka** (wypełniony SVG) ×N — w N kolumnach **on dubluje mnie**.
 
-Liczone z `standings[myPid].cols[c].diffs[opp]` (flaga `doubled` + znak `value`); własna zakładka nie ma symboli.
+Liczone funkcją `Rules.pairMarks` ze `standings[myPid]` (kolumny z `doubled` + znak `value`); własna zakładka nie ma symboli.
 
 ## Próg „≥ X" między graczami
 W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek).

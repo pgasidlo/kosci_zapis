@@ -1,6 +1,9 @@
 /* Testy silnika reguł (Node, bez przeglądarki).
-   Pokrywają: strukturę, wagi, premie, punktację, premię +200, kolejność kolumn,
-   próg ≥X, walidację (max, +/-), kompletność karty. */
+   Pokrywają: strukturę, wagi, premie, punktację (oczka↔wartość), premię +200,
+   wynik kolumny (× waga ÷ 10), kolejność kolumn, próg ≥X, walidację
+   (max/min, wielokrotności, strit/poker/kareta/malusie, +/-), kompletność karty,
+   skreślanie pary +/−, oraz pojedynki head-to-head (columnBases, dublowanie,
+   różnice, finał, suma, pairMarks → liczba ☠/★). */
 const fs = require("fs");
 global.window = {};
 eval(fs.readFileSync(__dirname + "/../js/rules.js", "utf8"));
@@ -181,6 +184,21 @@ ok(!R.isDoubled(0, 0) && !R.isDoubled(50, 50), "nie doubled: równe / zera");
   ok(st.C.skull, "C: czaszka");
 })();
 ok(!R.gameStandings({ A: { free: 50 }, B: { free: 40 } }, ["A", "B"]).A.star, "50 vs 40: brak gwiazdki (nie doubled)");
+
+/* ---- columnBases i pairMarks ---- */
+(function () {
+  var grids = { A: emptyGrid() }; grids.A.free.j6 = 30;
+  var bases = R.columnBases(grids, { free: 10, down: 0, up: 0, harmony: 0, second: 0, anons: 0 }, ["A"]);
+  eq(bases.A.free, R.scoreColumn(grids.A, "free", 10).wynik, "columnBases = scoreColumn().wynik (free)");
+  eq(bases.A.down, 0, "columnBases: pusta kolumna = 0");
+})();
+(function () {
+  var st = R.gameStandings({ A: { free: 100 }, B: { free: 50 }, C: { free: 40 } }, ["A", "B", "C"]);
+  eq(R.pairMarks(st, "A", "B").stars, 1, "pairMarks: A dubluje B w 1 kolumnie (★)");
+  eq(R.pairMarks(st, "A", "B").skulls, 0, "pairMarks: A nie zdublowany przez B");
+  eq(R.pairMarks(st, "B", "A").skulls, 1, "pairMarks: B zdublowany przez A (☠)");
+  eq(R.pairMarks(st, "B", "A").stars, 0, "pairMarks: B nie dubluje A");
+})();
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
