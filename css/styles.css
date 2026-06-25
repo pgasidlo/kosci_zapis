@@ -86,8 +86,9 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:12px
 .dd{font-weight:700}
 .ddpos{color:#1d7a3a}
 .ddneg{color:#c0392b}
-.skull{color:#c0392b;margin-right:2px}
-.gstar{color:#e6a700;margin-right:2px;font-weight:700}
+.marks{white-space:nowrap;margin-right:3px}
+.marks svg{vertical-align:-2px}
+.gstar{color:#e6a700;font-weight:700;margin:0 1px}
 
 .grand{display:flex;align-items:baseline;gap:8px;margin-top:10px}
 .grand .val{font-size:22px;font-weight:600}

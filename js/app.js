@@ -14,6 +14,30 @@
     plus: "+", minus: "−", strit: "strit", full: "full", kareta: "kareta", malusie: "malusie", poker: "poker"
   };
 
+  // Czerwony, wypełniony jolly roger (widoczny na małym ekranie).
+  var SKULL_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
+    '<g stroke="#d11" stroke-width="2.6" stroke-linecap="round"><path d="M6.5 7.5 17.5 18.5"/><path d="M17.5 7.5 6.5 18.5"/></g>' +
+    '<path d="M12 2.2C7.7 2.2 4.2 5.4 4.2 9.6c0 2.5 1.3 4.7 3.3 6V18c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-2.4c2-1.3 3.3-3.5 3.3-6 0-4.2-3.5-7.4-7.8-7.4z" fill="#d11"/>' +
+    '<circle cx="9" cy="10.2" r="1.9" fill="#2b0000"/><circle cx="15" cy="10.2" r="1.9" fill="#2b0000"/>' +
+    '<path d="M12 12.6l-1.1 2.3h2.2z" fill="#2b0000"/></svg>';
+
+  // Liczba kolumn, w których JA dubluję przeciwnika (gwiazdki) / przeciwnik dubluje mnie (czaszki).
+  function pairMarks(standings, myPid, oppPid) {
+    var cols = standings[myPid].cols, stars = 0, skulls = 0;
+    for (var i = 0; i < R.COLS.length; i++) {
+      var d = cols[R.COLS[i]].diffs[oppPid];
+      if (d && d.doubled) { if (d.value > 0) stars++; else skulls++; }
+    }
+    return { stars: stars, skulls: skulls };
+  }
+  function marksHTML(m) {
+    if (!m.stars && !m.skulls) return "";
+    var s = "", i;
+    for (i = 0; i < m.skulls; i++) s += SKULL_SVG;
+    for (i = 0; i < m.stars; i++) s += '<span class="gstar">★</span>';
+    return '<span class="marks" title="★ dublujesz przeciwnika · ☠ przeciwnik dubluje Ciebie (liczba = kolumny)">' + s + "</span>";
+  }
+
   function $app() { return document.getElementById("app"); }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -152,7 +176,7 @@
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
       h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';
 
-    if (finished) h += rankingHTML(standings);
+    if (finished) h += rankingHTML(standings, myPid);
 
     var maxT = -Infinity;
     playerIds.forEach(function (pid) { if (standings[pid].total > maxT) maxT = standings[pid].total; });
@@ -161,8 +185,7 @@
     order.forEach(function (pid) {
       var me = pid === myPid, st = standings[pid];
       var done = R.cardComplete(grids[pid] || {});
-      var marks = (st.skull ? '<span class="skull" title="przeciwnik dubluje Cię w którejś kolumnie">☠</span>' : "") +
-        (st.star ? '<span class="gstar" title="dublujesz przeciwnika w którejś kolumnie">★</span>' : "");
+      var marks = me ? "" : marksHTML(pairMarks(standings, myPid, pid));
       var lead = st.total === maxT;
       h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
         marks + esc(players[pid].name) + ' <span class="tscore' + (lead ? " lead" : "") + '">' + st.total + "</span>" +
@@ -359,15 +382,15 @@
   }
 
   /* ---------- Ranking ---------- */
-  function rankingHTML(standings) {
+  function rankingHTML(standings, myPid) {
     var players = curSession.players || {};
     var arr = Object.keys(players).map(function (pid) {
-      return { name: players[pid].name, total: standings[pid].total, skull: standings[pid].skull, star: standings[pid].star };
+      return { pid: pid, name: players[pid].name, total: standings[pid].total };
     });
     arr.sort(function (a, b) { return b.total - a.total; });
     var h = '<div class="ranking"><h2>Koniec gry — ranking</h2>';
     arr.forEach(function (p, i) {
-      var marks = (p.skull ? '<span class="skull">☠</span>' : "") + (p.star ? '<span class="gstar">★</span>' : "");
+      var marks = p.pid === myPid ? "" : marksHTML(pairMarks(standings, myPid, p.pid));
       h += '<div class="rankrow"><span class="pos">' + (i + 1) + ". " + marks + esc(p.name) + '</span><span class="pts">' + p.total + "</span></div>";
     });
     h += "</div>";

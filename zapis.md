@@ -114,9 +114,11 @@ Pod wynikiem kolumny (Σ//10) dochodzą wiersze modyfikujące zapis (`Rules.colu
 - **Wynik ost. kolumny** (`Σ ost.`) = mój wynik + suma różnic do przeciwników (z dublowaniem).
 - **Ostateczny wynik gracza** = suma „wyników ost." wszystkich 6 kolumn.
 
-Symbole przy imieniu (zakładki i ranking):
-- **☠ czerwona czaszka** — gdy przeciwnik dubluje Cię w którejkolwiek kolumnie.
-- **★ złota gwiazdka** — gdy Ty dublujesz przeciwnika w którejkolwiek kolumnie.
+Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy „mnie" = `myPid`); **liczba symboli = liczba kolumn**:
+- **★ złota gwiazdka** ×N — w N kolumnach **ja dubluję** tego przeciwnika.
+- **☠ czerwony jolly roger** (wypełniony SVG) ×N — w N kolumnach **ten przeciwnik dubluje mnie**.
+
+Liczy się to z `standings[myPid].cols[c].diffs[opp]` (flaga `doubled` + znak `value`); własna zakładka nie ma symboli.
 
 ## Koniec gry
 Karta gracza jest **kompletna**, gdy każde z 78 pól (6 kolumn × 13 wierszy) jest wypełnione lub skreślone (`Rules.cardComplete`). Gdy kompletne są karty wszystkich graczy, `meta.status` przechodzi na `finished` i u każdego pojawia się ranking (suma punktów malejąco).
