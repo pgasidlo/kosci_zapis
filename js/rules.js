@@ -48,6 +48,9 @@
     if (row === "malusie") return (100 - value) / 5;
     return value;
   }
+  // Dolne granice (wartość końcowa) oraz wielokrotność nominału w szkółce.
+  var MINS = { full: 25, kareta: 35, poker: 75 };
+  var NOMINAL = { j1: 1, j2: 2, j3: 3, j4: 4, j5: 5, j6: 6 };
 
   function isCross(v) { return v === "X" || v === "x"; }
   function isEmpty(v) { return v === undefined || v === null || v === ""; }
@@ -146,7 +149,15 @@
     if (isEmpty(value)) return { ok: false, reason: "puste pole" };
     var n = Number(value);
     if (!isFinite(n) || n < 0) return { ok: false, reason: "niepoprawna liczba" };
+    if (n !== Math.round(n)) return { ok: false, reason: "musi być liczbą całkowitą" };
     if (MAXES[row] != null && n > MAXES[row]) return { ok: false, reason: "za dużo — max " + MAXES[row] };
+    if (MINS[row] != null && n < MINS[row]) {
+      var minMsg = isPipRow(row) ? (pipsFromValue(row, MINS[row]) + " oczek") : MINS[row];
+      return { ok: false, reason: "za mało — min " + minMsg };
+    }
+    if (NOMINAL[row] != null && n % NOMINAL[row] !== 0) return { ok: false, reason: "musi być wielokrotnością " + NOMINAL[row] };
+    if (row === "strit" && n !== 45 && n !== 50) return { ok: false, reason: "strit: tylko 15 lub 20 oczek" };
+    if (row === "poker" && n % 5 !== 0) return { ok: false, reason: "poker: tylko wielokrotność 5 oczek" };
 
     var fl = floorFor(allGrids, pid, col, row);
     if (n < fl) return { ok: false, reason: "za nisko — min. " + fl };
@@ -180,7 +191,7 @@
   window.Rules = {
     COLS: COLS, COL_LABELS: COL_LABELS, COL_HINT: COL_HINT,
     ROWS: ROWS, ROW_LABELS: ROW_LABELS, ROW_HINT: ROW_HINT,
-    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS, MAXES: MAXES, BONUS: BONUS,
+    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS, MAXES: MAXES, MINS: MINS, NOMINAL: NOMINAL, BONUS: BONUS,
     isPipRow: isPipRow, valueFromPips: valueFromPips, pipsFromValue: pipsFromValue,
     isCross: isCross, isEmpty: isEmpty, isFilled: isFilled, numVal: numVal,
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,

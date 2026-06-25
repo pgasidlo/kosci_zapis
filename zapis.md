@@ -91,10 +91,11 @@ Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
 ## Reguły walidacji (`Rules.validateCell`)
 Wpis jest przyjmowany tylko, gdy przejdzie walidację:
 1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).
-2. Wartość liczbowa, nieujemna (puste / nie-liczba → odrzucone).
-3. Nie większa niż **max** wiersza (tabela wyżej).
-4. Nie mniejsza niż **próg ≥ X** od innych graczy.
-5. Dla `plus`/`minus`: ≥ 20 oraz zachowana relacja „+" > „−".
+2. Liczba **całkowita**, nieujemna (puste / nie-liczba / ułamek → odrzucone).
+3. Nie większa niż **max** i nie mniejsza niż **min** wiersza (`Rules.MAXES`, `Rules.MINS`): full ≥ 5 oczek (25), kareta ≥ 5 (35), poker ≥ 5 (75).
+4. **Dozwolone zbiory**: szkółka `j1…j6` — wielokrotność nominału (`Rules.NOMINAL`; np. dwójki 0,2,…,10); **strit** — tylko 15 lub 20 oczek (45/50); **poker** — wielokrotność 5 oczek (75,80,…,100).
+5. Nie mniejsza niż **próg „≥ X"** od innych graczy.
+6. Dla `plus`/`minus`: ≥ 20 oraz zachowana relacja „+" > „−".
 
 Pola oczkowe (strit/full/kareta/poker/malusie): wpisane **oczka** są najpierw przeliczane na **wartość końcową**, a walidacja (max, próg) działa na wartości końcowej.
 
@@ -116,7 +117,7 @@ Karta gracza jest **kompletna**, gdy każde z 78 pól (6 kolumn × 13 wierszy) j
 - premia +200 (spełniona; <60; skreślenie w dole; puste w dole; skreślenie u góry dozwolone),
 - aktywne pola każdej kolumny (Wolne/Drugi rzut/Anons, Dół, Góra, Harmonia — w tym granice i wyczerpanie),
 - próg ≥ X (max innych, pominięcie siebie, ignorowanie `X`),
-- walidacja (X zawsze; puste/ujemne/nie-liczba; max i max+1 dla każdego wiersza; próg; reguły +/−),
+- walidacja (X zawsze; całkowita/nieujemna; max i min dla każdego wiersza; wielokrotność szkółki; strit 45/50; poker ×5; próg; reguły +/−),
 - skreślanie pary +/−, kompletność karty.
 
 Poza silnikiem (logika UI w `app.js`, weryfikowana ręcznie w przeglądarce): synchronizacja na żywo, dymki, zakładki/sumy, zmiana gracza, odkreślanie pary, podpięcie Firebase.

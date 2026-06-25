@@ -103,6 +103,21 @@ ok(R.validateCell({ A: { free: { minus: 25 } } }, "A", "free", "plus", 30).ok, "
 ok(!R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 25).ok, "„−” musi być < „+”");
 ok(R.validateCell({ A: { free: { plus: 25 } } }, "A", "free", "minus", 22).ok, "„−” 22 < „+” 25 OK");
 
+/* ---- minimalne wartości i dozwolone zbiory ---- */
+ok(!R.validateCell({}, "A", "free", "full", 25.5).ok, "wartość niecałkowita → błąd");
+ok(!R.validateCell({}, "A", "free", "full", 24).ok, "full < 25 (min 5 oczek) → błąd");
+ok(R.validateCell({}, "A", "free", "full", 25).ok, "full 25 (5 oczek) OK");
+ok(!R.validateCell({}, "A", "free", "kareta", 34).ok, "kareta < 35 → błąd");
+ok(R.validateCell({}, "A", "free", "kareta", 35).ok, "kareta 35 OK");
+ok(!R.validateCell({}, "A", "free", "poker", 74).ok, "poker < 75 → błąd");
+ok(!R.validateCell({}, "A", "free", "poker", 77).ok, "poker nie-wielokrotność 5 → błąd");
+ok(R.validateCell({}, "A", "free", "poker", 80).ok, "poker 80 (wielokrotność 5) OK");
+ok(R.validateCell({}, "A", "free", "strit", 45).ok && R.validateCell({}, "A", "free", "strit", 50).ok, "strit: 45 i 50 OK");
+ok(!R.validateCell({}, "A", "free", "strit", 46).ok && !R.validateCell({}, "A", "free", "strit", 30).ok, "strit: inne wartości → błąd");
+ok(R.validateCell({}, "A", "free", "j2", 0).ok && R.validateCell({}, "A", "free", "j2", 4).ok, "dwójki: 0 i 4 OK");
+ok(!R.validateCell({}, "A", "free", "j2", 5).ok, "dwójki = 5 (nie-wielokrotność 2) → błąd");
+ok(R.validateCell({}, "A", "free", "j3", 15).ok && !R.validateCell({}, "A", "free", "j3", 14).ok, "trójki: 15 OK, 14 błąd");
+
 /* ---- kompletność karty ---- */
 ok(!R.cardComplete(emptyGrid()), "pusta karta → niekompletna");
 ok(!R.cardComplete({ free: { j1: 5 } }), "częściowa karta → niekompletna");

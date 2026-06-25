@@ -45,7 +45,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 - **Obecność** — jeśli to samo imię jest aktywne na innym urządzeniu, pokazujemy ostrzeżenie (wybór pozostaje wolny, nie blokujemy — potrzebne do reconnectu).
 
 ## Co aplikacja egzekwuje, a co zostawia graczom
-**Egzekwuje:** próg „≥ X" między graczami; maksymalną liczbę punktów w polu; reguły pól „+"/„−" (≥20, „+" > „−", wspólne skreślenie); kolejność wpisywania w kolumnach (Dół z góry, Góra z dołu, Harmonia od środka) przez odblokowywanie tylko legalnych pól; przeliczanie sum, premii i wyniku; wykrycie końca gry. W polach z bonusem (strit/full/kareta/poker/malusie) wpisuje się **oczka z kości**, a pole samo liczy wartość końcową.
+**Egzekwuje:** próg „≥ X" między graczami; minimalną i maksymalną liczbę punktów oraz dozwolone wartości w polu (np. strit 45/50, poker wielokrotność 5, szkółka wielokrotność nominału); reguły pól „+"/„−" (≥20, „+" > „−", wspólne skreślenie); kolejność wpisywania w kolumnach (Dół z góry, Góra z dołu, Harmonia od środka) przez odblokowywanie tylko legalnych pól; przeliczanie sum, premii i wyniku; wykrycie końca gry. W polach z bonusem (strit/full/kareta/poker/malusie) wpisuje się **oczka z kości**, a pole samo liczy wartość końcową.
 
 **Zostawia graczom (aplikacja tego nie widzi):** liczbę rzutów oraz deklarację „Anons" — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji wolną kolejność wpisywania.
 
