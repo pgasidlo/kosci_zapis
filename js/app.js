@@ -14,12 +14,12 @@
     plus: "+", minus: "−", strit: "strit", full: "full", kareta: "kareta", malusie: "malusie", poker: "poker"
   };
 
-  // Czerwony, wypełniony jolly roger (widoczny na małym ekranie).
+  // Czerwona odznaka z czaszką (opcja 11) — czytelna w małym rozmiarze.
   var SKULL_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
-    '<g stroke="#d11" stroke-width="2.6" stroke-linecap="round"><path d="M6.5 7.5 17.5 18.5"/><path d="M17.5 7.5 6.5 18.5"/></g>' +
-    '<path d="M12 2.2C7.7 2.2 4.2 5.4 4.2 9.6c0 2.5 1.3 4.7 3.3 6V18c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-2.4c2-1.3 3.3-3.5 3.3-6 0-4.2-3.5-7.4-7.8-7.4z" fill="#d11"/>' +
-    '<circle cx="9" cy="10.2" r="1.9" fill="#2b0000"/><circle cx="15" cy="10.2" r="1.9" fill="#2b0000"/>' +
-    '<path d="M12 12.6l-1.1 2.3h2.2z" fill="#2b0000"/></svg>';
+    '<circle cx="12" cy="12" r="11" fill="#d11"/>' +
+    '<path d="M12 5.4c-3.4 0-6 2.4-6 5.4 0 1.9 1 3.5 2.5 4.4V17c0 .8.6 1.4 1.4 1.4h4.2c.8 0 1.4-.6 1.4-1.4v-1.8c1.5-.9 2.5-2.5 2.5-4.4 0-3-2.6-5.4-6-5.4z" fill="#fff"/>' +
+    '<circle cx="9.9" cy="11" r="1.4" fill="#d11"/><circle cx="14.1" cy="11" r="1.4" fill="#d11"/>' +
+    '<path d="M12 12.8l-.8 1.6h1.6z" fill="#d11"/></svg>';
 
   // Liczba kolumn, w których JA dubluję przeciwnika (gwiazdki) / przeciwnik dubluje mnie (czaszki).
   function pairMarks(standings, myPid, oppPid) {
