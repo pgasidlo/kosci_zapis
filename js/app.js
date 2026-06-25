@@ -233,12 +233,16 @@
     return h + "</tr>";
   }
   // Podpowiedź: czyje wyniki są już w tym polu (wszyscy gracze, którzy je wypełnili).
+  function fmtCellVal(row, v) {
+    if (R.isCross(v)) return "X";
+    return R.isPipRow(row) ? R.pipsFromValue(row, v) : v;     // dymki pokazują oczka
+  }
   function cellOwners(grids, col, row) {
     var players = (curSession && curSession.players) || {};
     var parts = [];
     Object.keys(players).forEach(function (pid) {
       var v = grids[pid] && grids[pid][col] && grids[pid][col][row];
-      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + (R.isCross(v) ? "X" : v));
+      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + fmtCellVal(row, v));
     });
     return parts.join(" · ");
   }
@@ -249,7 +253,7 @@
     Object.keys(players).forEach(function (pid) {
       if (pid === myPid) return;
       var v = grids[pid] && grids[pid][col] && grids[pid][col][row];
-      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + (R.isCross(v) ? "X" : v));
+      if (!R.isEmpty(v)) parts.push(players[pid].name + ": " + fmtCellVal(row, v));
     });
     return parts.join(" · ");
   }
@@ -264,10 +268,16 @@
       return '<input class="cinp' + (cross ? " crossed" : "") + '" data-col="' + col + '" data-row="' + row + '" value="' + (cross ? "X" : esc(v)) + '">';
     }
     if (R.isActive(grid, col, row)) {
-      var fl = R.floorFor(grids, myPid, col, row);
-      return '<input class="cinp" data-col="' + col + '" data-row="' + row + '"' + (fl > 0 ? ' placeholder="≥ ' + fl + '"' : "") + ">";
+      var ph = floorPlaceholder(row, R.floorFor(grids, myPid, col, row));
+      return '<input class="cinp" data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
     }
     return '<span class="locked">·</span>';
+  }
+  function floorPlaceholder(row, fl) {
+    if (fl <= 0) return "";
+    if (row === "malusie") return "≤ " + R.pipsFromValue("malusie", fl);   // mniej oczek = więcej pkt
+    if (R.BONUS[row] != null) return "≥ " + R.pipsFromValue(row, fl);
+    return "≥ " + fl;
   }
 
   function bindCardInputs(sid, myPid) {
@@ -276,10 +286,25 @@
       ins[i].addEventListener("change", function () { commit(sid, myPid, this); });
       ins[i].addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); this.blur(); } });
       ins[i].addEventListener("focus", function () {
+        toPipsDisplay(this);                                  // w edycji pokazujemy oczka
         var txt = cellOwnersOthers(curSession.grids || {}, this.dataset.col, this.dataset.row, myPid);
         if (txt) showPopover(this, txt, true); else hidePopover();
       });
-      ins[i].addEventListener("blur", hidePopover);
+      ins[i].addEventListener("blur", function () { hidePopover(); toValueDisplay(this); });
+    }
+  }
+  function toPipsDisplay(input) {
+    var row = input.dataset.row;
+    if (R.isPipRow(row) && input.value !== "" && !R.isCross(input.value)) {
+      var n = Number(input.value);
+      if (isFinite(n)) input.value = String(R.pipsFromValue(row, n));
+    }
+  }
+  function toValueDisplay(input) {
+    var row = input.dataset.row;
+    if (R.isPipRow(row) && input.value !== "" && !R.isCross(input.value)) {
+      var n = Number(input.value);
+      if (isFinite(n)) input.value = String(R.valueFromPips(row, n));
     }
   }
 
@@ -295,17 +320,19 @@
       return;
     }
     var n = Number(raw.replace(",", "."));
-    var res = R.validateCell(grids, myPid, col, row, n);
+    if (!isFinite(n)) { showError("niepoprawna liczba"); return; }
+    var val = R.isPipRow(row) ? R.valueFromPips(row, n) : n;   // wpisywane oczka → wartość końcowa
+    var res = R.validateCell(grids, myPid, col, row, val);
     if (!res.ok) { showError(res.reason); return; }
     if (row === "plus" || row === "minus") {
       var partner = row === "plus" ? "minus" : "plus";
       var pv = grids[myPid] && grids[myPid][col] && grids[myPid][col][partner];
       if (R.isCross(pv)) {
-        var obj = {}; obj[row] = n; obj[partner] = null;   // odkreślenie pary
+        var obj = {}; obj[row] = val; obj[partner] = null;   // odkreślenie pary
         DB.setCells(sid, myPid, col, obj); return;
       }
     }
-    DB.setCell(sid, myPid, col, row, n);
+    DB.setCell(sid, myPid, col, row, val);
   }
 
   function showError(msg) {

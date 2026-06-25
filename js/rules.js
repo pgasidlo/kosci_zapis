@@ -34,6 +34,20 @@
     j1: 5, j2: 10, j3: 15, j4: 20, j5: 25, j6: 30,
     plus: 30, minus: 30, strit: 50, full: 50, kareta: 60, malusie: 75, poker: 100
   };
+  // Pola, w które wpisuje się OCZKA z kości; wartość końcowa liczona z bonusem/wzorem.
+  // strit/full/kareta/poker: oczka + stały bonus. malusie: 100 − 5×oczka.
+  var BONUS = { strit: 30, full: 20, kareta: 30, poker: 70 };
+  function isPipRow(row) { return BONUS[row] != null || row === "malusie"; }
+  function valueFromPips(row, pips) {
+    if (BONUS[row] != null) return pips + BONUS[row];
+    if (row === "malusie") return 100 - 5 * pips;
+    return pips;
+  }
+  function pipsFromValue(row, value) {
+    if (BONUS[row] != null) return value - BONUS[row];
+    if (row === "malusie") return (100 - value) / 5;
+    return value;
+  }
 
   function isCross(v) { return v === "X" || v === "x"; }
   function isEmpty(v) { return v === undefined || v === null || v === ""; }
@@ -166,7 +180,8 @@
   window.Rules = {
     COLS: COLS, COL_LABELS: COL_LABELS, COL_HINT: COL_HINT,
     ROWS: ROWS, ROW_LABELS: ROW_LABELS, ROW_HINT: ROW_HINT,
-    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS, MAXES: MAXES,
+    UPPER: UPPER, LOWER: LOWER, WEIGHTS: WEIGHTS, MAXES: MAXES, BONUS: BONUS,
+    isPipRow: isPipRow, valueFromPips: valueFromPips, pipsFromValue: pipsFromValue,
     isCross: isCross, isEmpty: isEmpty, isFilled: isFilled, numVal: numVal,
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,
     scoreColumn: scoreColumn, scoreCard: scoreCard,

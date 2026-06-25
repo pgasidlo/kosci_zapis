@@ -115,5 +115,21 @@ ok(R.crossedRows("plus").length === 2 && R.crossedRows("plus").indexOf("minus") 
 ok(R.crossedRows("minus").indexOf("plus") >= 0, "skreślenie „−” skreśla też „+”");
 eq(R.crossedRows("strit").length, 1, "skreślenie figury nie dotyka innych pól");
 
+/* ---- wpisywanie oczek + bonus ---- */
+eq(R.valueFromPips("strit", 15), 45, "strit: 15 oczek → 45");
+eq(R.valueFromPips("strit", 20), 50, "strit: 20 → 50");
+eq(R.valueFromPips("full", 7), 27, "full: 7 → 27");
+eq(R.valueFromPips("kareta", 26), 56, "kareta: 26 → 56");
+eq(R.valueFromPips("poker", 30), 100, "poker: 30 → 100");
+eq(R.valueFromPips("malusie", 8), 60, "malusie: 8 oczek → 60");
+eq(R.valueFromPips("malusie", 5), 75, "malusie: 5 → 75");
+eq(R.pipsFromValue("strit", 45), 15, "strit: 45 → 15 oczek");
+eq(R.pipsFromValue("poker", 100), 30, "poker: 100 → 30 oczek");
+eq(R.pipsFromValue("malusie", 60), 8, "malusie: 60 → 8 oczek");
+ok(R.isPipRow("strit") && R.isPipRow("malusie") && !R.isPipRow("j1") && !R.isPipRow("plus"), "isPipRow: figury z bonusem + malusie");
+["strit", "full", "kareta", "poker", "malusie"].forEach(function (r) {
+  eq(R.pipsFromValue(r, R.valueFromPips(r, 9)), 9, "round-trip oczka↔wartość: " + r);
+});
+
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

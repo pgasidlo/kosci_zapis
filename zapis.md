@@ -47,6 +47,23 @@ Skreślenie (`X`) liczy się jak wypełnienie — w kolumnach z kolejnością pr
 
 Maksima (`Rules.MAXES`) wyliczone z najwyższych możliwych rzutów; służą do walidacji (patrz niżej).
 
+### Wpisywanie: oczka kości a wartość pola
+W polach z własnym bonusem/wzorem **wpisuje się tylko oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`):
+
+| Pole | Wpisujesz (oczka) | Pole pokazuje | Przelicznik |
+|---|---|---|---|
+| strit | 15 / 20 | 45 / 50 | oczka + 30 |
+| full | 7 … 30 | 27 … 50 | oczka + 20 |
+| kareta | … 30 | … 60 | oczka + 30 |
+| poker | 5 … 30 | 75 … 100 | oczka + 70 |
+| malusie | 5 … 20 | 75 … 0 | 100 − 5×oczka |
+
+- Po wyjściu z pola widać wartość końcową; po wejściu w edycję pole wraca do oczek.
+- Dymki (wyniki innych graczy) pokazują **oczka**.
+- Pozostałe pola (`j1…j6`, `+`, `−`) wpisuje się wprost (bez przelicznika).
+- **Wewnętrznie przechowywana jest wartość końcowa** — sumy, próg „≥ X" i maksima liczą się na niej; oczka to tylko forma wpisu i podglądu.
+- Podpowiedź progu w polu: dla strit/full/kareta/poker oczkowe „≥ N"; dla **malusie** (mniej oczek = więcej punktów) „≤ N" oczek.
+
 ## Premie
 ### Premia za szkółkę (osobno w każdej kolumnie)
 Od sumy nominałów `j1…j6` (`Rules.bonusSzkolka`):
@@ -78,6 +95,8 @@ Wpis jest przyjmowany tylko, gdy przejdzie walidację:
 3. Nie większa niż **max** wiersza (tabela wyżej).
 4. Nie mniejsza niż **próg ≥ X** od innych graczy.
 5. Dla `plus`/`minus`: ≥ 20 oraz zachowana relacja „+" > „−".
+
+Pola oczkowe (strit/full/kareta/poker/malusie): wpisane **oczka** są najpierw przeliczane na **wartość końcową**, a walidacja (max, próg) działa na wartości końcowej.
 
 Edycja własnych, już wypełnionych pól jest dozwolona — po zmianie obowiązuje ta sama walidacja.
 
