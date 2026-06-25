@@ -13,7 +13,7 @@ sessions/{klucz}
   presence: { <pid>: <clientId> }          # obecność do ostrzeżenia o zajętym imieniu
 ```
 - **Kolumny:** `free` (Wolne), `down` (Dół ↓), `up` (Góra ↑), `harmony` (Harmonia ↕), `second` (Drugi rzut), `anons` (Anons).
-- **Wiersze (13, od góry):** `j1`,`j2`,`j3`,`j4`,`j5`,`j6`, `plus`, `minus`, `strit`, `full`, `kareta`, `malusie`, `poker`.
+- **Wiersze (13, od góry):** `j1`,`j2`,`j3`,`j4`,`j5`,`j6`, `minus`, `plus`, `full`, `kareta`, `strit`, `malusie`, `poker`.
 - **Wagi** losowane raz przy tworzeniu gry (permutacja `8,10,12,14,16,18`), wspólne dla wszystkich graczy.
 
 ## Wartość pola
@@ -29,7 +29,7 @@ W danym momencie odblokowane są tylko pola, które wolno legalnie wypełnić (`
 - **Wolne, Drugi rzut, Anons** — każde puste pole (dowolna kolejność).
 - **Dół** — tylko najwyższe puste pole (z góry na dół).
 - **Góra** — tylko najniższe puste pole (z dołu do góry).
-- **Harmonia** — dwa pola na granicy przy kresce (między `j6` a `plus`): jedno w górę (od `j6` wzwyż) i jedno w dół (od `plus` w dół). Blok rośnie od środka.
+- **Harmonia** — dwa pola na granicy przy kresce (między `j6` a `minus`): jedno w górę (od `j6` wzwyż) i jedno w dół (od `minus` w dół). Blok rośnie od środka.
 
 Skreślenie (`X`) liczy się jak wypełnienie — w kolumnach z kolejnością przesuwa granicę dalej.
 
@@ -79,7 +79,7 @@ Przyznawana, gdy w danej kolumnie spełnione są **oba** warunki:
 > Założenie do potwierdzenia: +200 wchodzi do sumy kolumny i jest mnożone przez wagę (jak premia za szkółkę). Jeśli ma być płaskie (poza ×waga) — jedna zmiana we wzorze niżej.
 
 ## Wynik
-- **Wynik kolumny** = `(suma szkółki + premia za szkółkę + suma dołu + premia 200) × waga` (`Rules.scoreColumn`).
+- **Wynik kolumny** = `(suma szkółki + premia za szkółkę + suma dołu÷10 + premia 200) × waga` (`Rules.scoreColumn`). Suma dołu jest **dzielona przez 10 i zaokrąglana**.
 - **Wynik łączny gracza** = suma wyników 6 kolumn (`Rules.scoreCard`).
 
 ## Zależności między polami

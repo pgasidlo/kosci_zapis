@@ -57,6 +57,17 @@ eq(R.scoreColumn({ d: cEmpty }, "d", 8).premia200, 0, "+200=0: puste pole w dole
 var cUp = col({ j1: "X", j2: 10, j3: 15, j4: 20, j5: 25, j6: 30 }); // szkółka = 100
 eq(R.scoreColumn({ d: cUp }, "d", 8).premia200, 200, "+200: skreślenie U GÓRY dozwolone gdy szkółka ≥60");
 
+/* ---- suma dołu ÷ 10 (zaokrąglona) ---- */
+(function () {
+  var c = {}; R.LOWER.forEach(function (r) { c[r] = (r === "plus" || r === "minus") ? 20 : 5; }); // raw 65
+  eq(R.scoreColumn({ d: c }, "d", 1).dol, 7, "suma dołu round(65/10) = 7");
+  eq(R.scoreColumn({ d: c }, "d", 2).wynik, 7 * 2, "wynik liczy ze skalowanego dołu");
+})();
+(function () {
+  var c = {}; R.LOWER.forEach(function (r) { c[r] = (r === "plus" || r === "minus") ? 20 : 4; }); // raw 60
+  eq(R.scoreColumn({ d: c }, "d", 1).dol, 6, "suma dołu round(60/10) = 6");
+})();
+
 /* ---- aktywne pola (kolejność kolumn) ---- */
 eq(R.activeRows(emptyGrid(), "free").length, 13, "Wolne: wszystkie 13 aktywne");
 eq(R.activeRows(emptyGrid(), "second").length, 13, "Drugi rzut: wolna kolejność");
@@ -67,12 +78,12 @@ eq(R.activeRows({ down: { j1: "X" } }, "down")[0], "j2", "Dół: skreślenie te�
 eq(R.activeRows(emptyGrid(), "up")[0], "poker", "Góra: najniższe puste");
 eq(R.activeRows({ up: { poker: 30 } }, "up")[0], "malusie", "Góra: po poker → malusie");
 var ah = R.activeRows(emptyGrid(), "harmony");
-ok(ah.length === 2 && ah.indexOf("j6") >= 0 && ah.indexOf("plus") >= 0, "Harmonia: start [j6, plus]");
+ok(ah.length === 2 && ah.indexOf("j6") >= 0 && ah.indexOf("minus") >= 0, "Harmonia: start [j6, minus]");
 ok(R.activeRows({ harmony: { j6: 30 } }, "harmony").indexOf("j5") >= 0, "Harmonia: po j6 w górę → j5");
-ok(R.activeRows({ harmony: { plus: 20 } }, "harmony").indexOf("minus") >= 0, "Harmonia: po plus w dół → minus");
+ok(R.activeRows({ harmony: { minus: 20 } }, "harmony").indexOf("plus") >= 0, "Harmonia: po minus w dół → plus");
 var hUp = { harmony: {} }; R.UPPER.forEach(function (r) { hUp.harmony[r] = 5; });
 var ahUp = R.activeRows(hUp, "harmony");
-ok(ahUp.length === 1 && ahUp[0] === "plus", "Harmonia: górna wyczerpana → tylko dół");
+ok(ahUp.length === 1 && ahUp[0] === "minus", "Harmonia: górna wyczerpana → tylko dół (minus)");
 eq(R.activeRows(fullGrid(), "harmony").length, 0, "Harmonia: pełna kolumna → brak aktywnych");
 eq(R.activeRows(fullGrid(), "down").length, 0, "Dół: pełna kolumna → brak aktywnych");
 ok(R.isActive(emptyGrid(), "down", "j1") && !R.isActive(emptyGrid(), "down", "j2"), "isActive zgodne z activeRows");

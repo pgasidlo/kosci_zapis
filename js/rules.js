@@ -14,7 +14,7 @@
   };
 
   // 13 wierszy do wpisywania, od góry do dołu (kreska jest między indeksem 5 a 6)
-  var ROWS = ["j1","j2","j3","j4","j5","j6","plus","minus","strit","full","kareta","malusie","poker"];
+  var ROWS = ["j1","j2","j3","j4","j5","j6","minus","plus","full","kareta","strit","malusie","poker"];
   var ROW_LABELS = {
     j1:"Jedynki", j2:"Dwójki", j3:"Trójki", j4:"Czwórki", j5:"Piątki", j6:"Szóstki",
     plus:"+ (większe)", minus:"− (mniejsze)", strit:"Strit", full:"Full",
@@ -27,7 +27,7 @@
     kareta:"4 jedn.: suma 4 kości + 30", malusie:"100 − 5×oczka", poker:"5 jedn., suma + 70"
   };
   var UPPER = ["j1","j2","j3","j4","j5","j6"];                 // indeksy 0..5
-  var LOWER = ["plus","minus","strit","full","kareta","malusie","poker"]; // 6..12
+  var LOWER = ["minus","plus","full","kareta","strit","malusie","poker"]; // 6..12
   var WEIGHTS = [8, 10, 12, 14, 16, 18];
   // Maksymalna możliwa liczba punktów w danym wierszu (walidacja wpisu).
   var MAXES = {
@@ -81,6 +81,7 @@
     for (i = 0; i < UPPER.length; i++) szk += numVal(cv[UPPER[i]]);
     var prem = bonusSzkolka(szk);
     for (i = 0; i < LOWER.length; i++) dol += numVal(cv[LOWER[i]]);
+    dol = Math.round(dol / 10);                 // suma dołu ÷ 10, zaokrąglona
     var lowerCleanComplete = true;
     for (i = 0; i < LOWER.length; i++) {
       var v = cv[LOWER[i]];

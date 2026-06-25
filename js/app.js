@@ -208,9 +208,10 @@
     h += compRow("Σ", "Suma szkółki (nominały 1–6)", score, "szkolka", "tot");
     h += compRow("bonus", "Premia za szkółkę: ≥60→+30, ≥70→+50, ≥80→+100", score, "premia", "tot");
     h += '<tr class="kreska"><td colspan="7"></td></tr>';
-    h += dataRow("plus", grid, grids, editable, myPid, "pair");
     h += dataRow("minus", grid, grids, editable, myPid, "pair");
-    ["strit", "full", "kareta", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    h += dataRow("plus", grid, grids, editable, myPid, "pair");
+    ["full", "kareta", "strit", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    h += compRow("dół÷10", "Suma dołu ÷ 10 (zaokrąglona)", score, "dol", "tot");
     h += compRow("+200", "Premia za kolumnę: szkółka ≥60 i cały dół bez skreśleń", score, "premia200", "bonus");
     h += compRow("Σ", "Wynik kolumny = (szkółka + premia + dół + 200) × waga", score, "wynik", "win");
     h += "</tbody></table></div>";
