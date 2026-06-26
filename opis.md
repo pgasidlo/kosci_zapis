@@ -20,6 +20,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 - **Realtime + dane:** Firebase Realtime Database, SDK ładowane z CDN (compat 9.23.0).
 - **Hosting:** GitHub Pages.
 - **Sesja:** losowy klucz w linku (`#/s/KLUCZ`); tożsamość gracza w `localStorage`.
+- **Bezpieczeństwo:** utwardzone reguły bazy (`database.rules.json`, opublikowane) + klucz API ograniczony do domeny `mgrzemow.github.io/*`. `apiKey` jest jawny z założenia (nie sekret). Szczegóły w [README](README.md).
 
 ### Pliki
 | Plik | Rola |

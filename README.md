@@ -37,9 +37,10 @@ Otwórz `index.html` w przeglądarce (działa też przez `file://`) albo wystaw 
 `python -m http.server` lub `npx serve`.
 
 ## Bezpieczeństwo i konfiguracja Firebase
-- **`apiKey` w `js/db.js` jest jawny z założenia** — w aplikacjach webowych config Firebase jest publiczny (to identyfikatory, nie sekrety; przeglądarka i tak go potrzebuje). Bezpieczeństwa pilnują **reguły bazy**.
-- **Reguły bazy (realny strażnik):** w pliku [`database.rules.json`](database.rules.json). Wklej je w Firebase Console → Realtime Database → **Rules** → **Publish**. Ograniczają dostęp do `sessions/<klucz>` i walidują kształt (typy pól, limity długości, brak obcych kluczy).
-- **Opcjonalnie — ograniczenie klucza API:** Google Cloud Console → APIs & Services → Credentials → klucz „Browser key" → Application restrictions → Websites → `https://mgrzemow.github.io/*`. (Dla RTDB bez logowania klucz i tak nie bramkuje bazy — robią to reguły — ale to dobra higiena na wypadek włączenia Auth.)
+- **`apiKey` w `js/db.js` jest jawny z założenia** — w aplikacjach webowych config Firebase jest publiczny (to identyfikatory, nie sekrety; przeglądarka i tak go potrzebuje). Bezpieczeństwa pilnują reguły bazy, nie ukrycie klucza — dlatego config zostaje w repo.
+- **Reguły bazy — opublikowane** (realny strażnik). Treść w [`database.rules.json`](database.rules.json), aktywne w Firebase Console → Realtime Database → Rules. Ograniczają dostęp do `sessions/<klucz>` i walidują kształt (pola siatki: liczba albo „X"; limity długości; brak obcych kluczy). Po każdej zmianie reguł: zaktualizuj plik i wklej go ponownie w konsoli → Publish.
+- **Klucz API — ograniczony do domeny.** Google Cloud Console (projekt `kosci-zapis`) → APIs & Services → Credentials → „Browser key" → Application restrictions → Websites → `mgrzemow.github.io/*`. To higiena — dla naszego RTDB bez logowania klucz i tak nie bramkuje bazy (robią to reguły).
+- **Właściciel projektu:** Firebase/Cloud projekt `kosci-zapis` należy do **mgrzemow@gmail.com** (to samo konto co GitHub). Jeśli w Google masz zalogowane też inne konto, w Cloud Console wymuś właściwe przez `?authuser=mgrzemow@gmail.com`.
 
 ## Wdrożenie
 Skrypt `deploy.ps1` podbija wersję zasobów (`?v=` w `index.html`) na znacznik czasu, commituje i wypycha — dzięki temu po zwykłym odświeżeniu w przeglądarce ładuje się najnowsza wersja (cache-busting). Użycie:
