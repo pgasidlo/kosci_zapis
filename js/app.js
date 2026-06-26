@@ -44,6 +44,12 @@
   function setMyPid(sid, pid) { localStorage.setItem("kosci_pid_" + sid, pid); }
 
   var floorMode = (function () { try { return localStorage.getItem("kosci_floorMode") || "oczka"; } catch (e) { return "oczka"; } })();
+  var theme = (function () { try { return localStorage.getItem("kosci_theme") || "auto"; } catch (e) { return "auto"; } })();
+  function prefersDark() { try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; } catch (e) { return false; } }
+  function applyTheme() {
+    var dark = theme === "dark" || (theme !== "light" && prefersDark());
+    try { document.documentElement.setAttribute("data-theme", dark ? "dark" : "light"); } catch (e) {}
+  }
   var audioCtx = null, pingPrevBefore = null, pingPrevSig = null;
   function initAudio() {
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; } }
@@ -340,7 +346,12 @@
     h += '<div class="legend">Wpisz liczbę lub <b>x</b> (skreślenie). „≥ X” = próg od innych graczy. ' +
       'Kolumny: 1. wolne · ↓ dół · ↑ góra · ↕ harmonia · 2rz drugi rzut · A anons. Przytrzymaj nagłówek lub wiersz, by zobaczyć pełny opis.</div>';
 
-    h += '<div class="opts"><div class="optrow"><span>Próg podpowiedzi:</span>' +
+    h += '<div class="opts"><div class="optrow"><span>Motyw:</span>' +
+      '<span class="seg2" id="themeSeg">' +
+      '<button data-th="light"' + (theme === "light" ? ' class="on"' : "") + ">jasny</button>" +
+      '<button data-th="dark"' + (theme === "dark" ? ' class="on"' : "") + ">ciemny</button>" +
+      '<button data-th="auto"' + (theme === "auto" ? ' class="on"' : "") + ">z telefonu</button></span></div>";
+    h += '<div class="optrow"><span>Próg podpowiedzi:</span>' +
       '<span class="seg2" id="floorSeg">' +
       '<button data-fm="oczka"' + (floorMode === "oczka" ? ' class="on"' : "") + ">oczka</button>" +
       '<button data-fm="punkty"' + (floorMode === "punkty" ? ' class="on"' : "") + ">punkty</button></span></div>";
@@ -367,6 +378,8 @@
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
+    var thseg = document.querySelectorAll("#themeSeg button");
+    for (var thi = 0; thi < thseg.length; thi++) thseg[thi].onclick = function () { theme = this.getAttribute("data-th"); try { localStorage.setItem("kosci_theme", theme); } catch (e) {} applyTheme(); renderGame(sid, myPid); };
     var fseg = document.querySelectorAll("#floorSeg button");
     for (var fi = 0; fi < fseg.length; fi++) fseg[fi].onclick = function () { floorMode = this.getAttribute("data-fm"); try { localStorage.setItem("kosci_floorMode", floorMode); } catch (e) {} renderGame(sid, myPid); };
     var obtns = document.querySelectorAll(".obtn");
@@ -634,6 +647,15 @@
   });
 
   window.addEventListener("hashchange", route);
+  applyTheme();
+  try {
+    var mqDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
+    if (mqDark) {
+      var onSys = function () { if (theme === "auto") applyTheme(); };
+      if (mqDark.addEventListener) mqDark.addEventListener("change", onSys);
+      else if (mqDark.addListener) mqDark.addListener(onSys);
+    }
+  } catch (e) {}
   applyTableMode();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
   else route();
