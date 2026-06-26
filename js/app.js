@@ -84,20 +84,24 @@
     ttsPrimed = true;
     try { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) {}
   }
-  function speak(text) {
+  function speakNow(text, onStarted) {
     if (!canSpeak()) return false;
     try {
       if (!ttsVoice) pickVoice();
       var u = new SpeechSynthesisUtterance(text);
       u.lang = "pl-PL"; if (ttsVoice) u.voice = ttsVoice;
-      window.speechSynthesis.cancel();
+      u.onstart = function () { if (onStarted) onStarted(); };
+      try { window.speechSynthesis.resume(); } catch (e) {}   // wyjdź z „pauzy", w której bywa Chrome
       window.speechSynthesis.speak(u);
       return true;
     } catch (e) { return false; }
   }
   function announceTurn(name) {
     vibe();
-    if (!speak("Twoja kolej" + (name ? ", " + name : ""))) beepNow();   // brak mowy → dźwięk
+    var started = false;
+    var tried = speakNow("Twoja kolej" + (name ? ", " + name : ""), function () { started = true; });
+    if (!tried) { beepNow(); return; }
+    setTimeout(function () { if (!started) beepNow(); }, 450);   // mowa w tle zablokowana → awaryjny ping
   }
 
   // Tryb stołowy: ekran nie gaśnie (Wake Lock) + kontekst audio trzymany „przy życiu",
@@ -446,10 +450,11 @@
       return '<input class="cinp' + (cross ? " crossed" : "") + '" data-col="' + col + '" data-row="' + row + '" value="' + (cross ? "X" : esc(v)) + '">';
     }
     if (R.isActive(grid, col, row)) {
-      var ph = floorPlaceholder(row, R.floorFor(grids, myPid, col, row));
+      var ph = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));
       return '<input class="cinp" data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
     }
-    return '<span class="locked">·</span>';
+    var lf = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));   // próg widoczny też w polach jeszcze zablokowanych
+    return '<span class="locked">' + (lf || "·") + "</span>";
   }
   function floorPlaceholder(row, fl) {
     if (fl <= 0) return "";

@@ -60,7 +60,7 @@ sessions/{klucz}
 - **Obecność** — jeśli to samo imię jest aktywne na innym urządzeniu, pokazujemy ostrzeżenie (wybór pozostaje wolny, nie blokujemy — potrzebne do reconnectu).
 
 ## Co aplikacja egzekwuje, a co zostawia graczom
-**Egzekwuje:** próg „≥ X" między graczami; minimalną i maksymalną liczbę punktów oraz dozwolone wartości w polu (np. strit 45/50, poker wielokrotność 5, szkółka wielokrotność nominału); reguły pól „+"/„−" (≥20, „+" > „−", wspólne skreślenie); kolejność wpisywania w kolumnach (Dół z góry, Góra z dołu, Harmonia od środka) przez odblokowywanie tylko legalnych pól; przeliczanie sum, premii i wyniku; wykrycie końca gry. W polach z bonusem (strit/full/kareta/poker/malusie) wpisuje się **oczka z kości**, a pole samo liczy wartość końcową. Liczy też **różnice head-to-head** między graczami (z dublowaniem przy proporcji ≥2×) i pokazuje symbole **☠ / ★** przy imionach.
+**Egzekwuje:** próg „≥ X" między graczami; minimalną i maksymalną liczbę punktów oraz dozwolone wartości w polu (np. strit 45/50, poker wielokrotność 5, szkółka wielokrotność nominału); reguły pól „+"/„−" (≥20, „+" > „−", a cudze „−" podnosi też próg mojego „+"; wspólne skreślenie); pokazywanie progu „≥ X" także w polach jeszcze zablokowanych; kolejność wpisywania w kolumnach (Dół z góry, Góra z dołu, Harmonia od środka) przez odblokowywanie tylko legalnych pól; przeliczanie sum, premii i wyniku; wykrycie końca gry. W polach z bonusem (strit/full/kareta/poker/malusie) wpisuje się **oczka z kości**, a pole samo liczy wartość końcową. Liczy też **różnice head-to-head** między graczami (z dublowaniem przy proporcji ≥2×) i pokazuje symbole **☠ / ★** przy imionach.
 
 **Zostawia graczom (aplikacja tego nie widzi):** liczbę rzutów oraz deklarację „Anons" — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji wolną kolejność wpisywania.
 
@@ -76,7 +76,7 @@ Silnik reguł (`js/rules.js`) ma pełny zestaw testów jednostkowych w `test/rul
 - premia za szkółkę (progi), suma szkółki/dołu, wynik kolumny (× waga ÷ 10) i wynik łączny, traktowanie `X`/pustych jako 0,
 - premia +200 (spełniona; <60; skreślenie/puste w dole; skreślenie u góry dozwolone),
 - aktywne pola każdej kolumny (Wolne/Drugi rzut/Anons, Dół, Góra, Harmonia — granice i wyczerpanie),
-- próg „≥ X" (max innych, pominięcie siebie, ignorowanie `X`),
+- próg „≥ X" (max innych, pominięcie siebie, ignorowanie `X`; sprzężenie „−"→„+" w `floorEff`),
 - walidacja (X zawsze; całkowita/nieujemna; max i min; wielokrotności szkółki/poker/kareta; strit 45/50; malusie 5–8; +/−),
 - skreślanie pary +/−, kompletność karty,
 - pojedynki head-to-head: `columnBases`, dublowanie (≥2×, 0 vs >0), różnice, finał kolumny, suma końcowa, `pairMarks` (liczba ☠/★).

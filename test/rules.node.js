@@ -96,6 +96,15 @@ eq(R.floorFor(grids, "B", "free", "full"), 30, "floor pomija własną wartość"
 eq(R.floorFor({ A: { free: { full: "X" } }, B: { free: { full: 25 } } }, "C", "free", "full"), 25, "floor: skreślone u innych nie liczy");
 eq(R.floorFor({ A: { free: { full: "X" } } }, "C", "free", "full"), 0, "floor: same skreślenia → 0");
 
+/* ---- efektywny próg: sprzężenie „−” → „+” (floorEff) ---- */
+eq(R.floorEff(grids, "C", "free", "full"), 40, "floorEff = floorFor dla zwykłych pól");
+var gMinus = { A: { free: { minus: 25 } }, B: {}, C: {} };
+eq(R.floorEff(gMinus, "C", "free", "plus"), 26, "floorEff(+): cudze − = 25 → + ≥ 26");
+eq(R.floorEff(gMinus, "C", "free", "minus"), 25, "floorEff(−): bez zmian = 25");
+eq(R.floorEff({ A: { free: { minus: 25, plus: 28 } }, C: {} }, "C", "free", "plus"), 28, "floorEff(+): max(cudze + =28, cudze −+1 =26) = 28");
+ok(!R.validateCell(gMinus, "C", "free", "plus", 25).ok, "walidacja: + = 25 odrzucone gdy cudze − = 25");
+ok(R.validateCell(gMinus, "C", "free", "plus", 26).ok, "walidacja: + = 26 OK gdy cudze − = 25");
+
 /* ---- walidacja ---- */
 ok(R.validateCell({}, "A", "free", "full", "X").ok, "X zawsze dozwolone");
 ok(!R.validateCell({}, "A", "free", "full", "").ok, "puste → błąd");

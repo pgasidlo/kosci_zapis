@@ -143,6 +143,17 @@
     return mx;
   }
 
+  // Efektywny próg z uwzględnieniem sprzężenia „+”/„−”: skoro „+” > „−”, cudzy wpis
+  // w „−” podnosi też dolny próg mojego „+” (muszę przebić najwyższe cudze „−”).
+  function floorEff(allGrids, pid, col, row) {
+    var base = floorFor(allGrids, pid, col, row);
+    if (row === "plus") {
+      var fm = floorFor(allGrids, pid, col, "minus");
+      if (fm > 0 && fm + 1 > base) base = fm + 1;
+    }
+    return base;
+  }
+
   // Walidacja proponowanej wartości. value: liczba lub "X".
   function validateCell(allGrids, pid, col, row, value) {
     if (isCross(value)) return { ok: true, cross: true };
@@ -164,7 +175,7 @@
     if (row === "kareta" && (n - 30) % 4 !== 0) return { ok: false, reason: "kareta: wielokrotność 4 oczek" };
     if (row === "poker" && n % 5 !== 0) return { ok: false, reason: "poker: tylko wielokrotność 5 oczek" };
 
-    var fl = floorFor(allGrids, pid, col, row);
+    var fl = floorEff(allGrids, pid, col, row);
     if (n < fl) return { ok: false, reason: "za nisko — min. " + fl };
 
     if (row === "plus" || row === "minus") {
@@ -257,7 +268,7 @@
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,
     scoreColumn: scoreColumn, scoreCard: scoreCard,
     activeRows: activeRows, isActive: isActive,
-    floorFor: floorFor, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows,
+    floorFor: floorFor, floorEff: floorEff, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows,
     isDoubled: isDoubled, columnBases: columnBases, gameStandings: gameStandings, pairMarks: pairMarks
   };
 })();

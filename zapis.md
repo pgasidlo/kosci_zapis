@@ -62,7 +62,7 @@ Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy `myPid`
 Liczone funkcją `Rules.pairMarks` ze `standings[myPid]` (kolumny z `doubled` + znak `value`); własna zakładka nie ma symboli.
 
 ## Próg „≥ X" między graczami
-W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek). Jednostka podpowiedzi jest przełączalna **per gracz** (na dole ekranu): **oczka** (domyślnie) albo **punkty** (wartość z bonusem pola) — wtedy dla wszystkich pól „≥ X" w punktach.
+W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. Próg „≥ X" jest widoczny **także w polach jeszcze zablokowanych** do edycji (nie tylko w aktywnych) — w każdej pustej komórce własnej karty. **Sprzężenie „+"/„−"** (`Rules.floorEff`): skoro „+" > „−", cudzy wpis w „−" podnosi też dolny próg mojego „+" — „+" ≥ (najwyższe cudze „−") + 1. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek). Jednostka podpowiedzi jest przełączalna **per gracz** (na dole ekranu): **oczka** (domyślnie) albo **punkty** (wartość z bonusem pola) — wtedy dla wszystkich pól „≥ X" w punktach.
 
 ## Reguły walidacji (`Rules.validateCell`)
 1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).
@@ -70,7 +70,7 @@ W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być
 3. Nie większa niż **max** i nie mniejsza niż **min** wiersza (`Rules.MAXES`, `Rules.MINS`): full ≥ 5 oczek (25), kareta ≥ 4 (34), poker ≥ 5 (75).
 4. **Dozwolone zbiory:** szkółka `j1…j6` — wielokrotność nominału (`Rules.NOMINAL`); **strit** — tylko 15 lub 20 oczek (45/50); **poker** — wielokrotność 5 oczek; **kareta** — wielokrotność 4 oczek (34…54); **malusie** — tylko 5–8 oczek (9+ = skreśl).
 5. Nie mniejsza niż **próg „≥ X"** od innych graczy.
-6. Dla `plus`/`minus`: ≥ 20 oraz „+" > „−".
+6. Dla `plus`/`minus`: ≥ 20 oraz „+" > „−"; dodatkowo „+" ≥ (najwyższe cudze „−") + 1 (`Rules.floorEff`).
 
 Pola oczkowe: wpisane **oczka** są najpierw przeliczane na wartość końcową, a walidacja działa na wartości końcowej. Edycja własnych, wypełnionych pól jest dozwolona — po zmianie obowiązuje ta sama walidacja.
 
