@@ -103,9 +103,12 @@
     } catch (e) { return false; }
   }
   function doneVerb(name) { return /a\s*$/i.test(name || "") ? "skończyła" : "skończył"; }   // odmiana wg końcówki imienia
+  function isZaneta(name) { return (name || "").trim().toLowerCase() === "żaneta"; }
+  function dimNom(name) { return isZaneta(name) ? "Żanetka" : name; }                        // forma „kto skończył" (mianownik)
+  function dimVoc(name) { return isZaneta(name) ? "Żanetko" : name; }                        // forma „Twoja kolej, …" (wołacz)
   function announceTurn(myName, prevName) {
     vibe();
-    var msg = (prevName ? prevName + " " + doneVerb(prevName) + " swój ruch. " : "") + "Twoja kolej" + (myName ? ", " + myName : "");
+    var msg = (prevName ? dimNom(prevName) + " " + doneVerb(prevName) + " swój ruch. " : "") + "Twoja kolej" + (myName ? ", " + dimVoc(myName) : "");
     var started = false;
     var tried = speakNow(msg, function () { started = true; });
     if (!tried) { beepNow(); return; }
