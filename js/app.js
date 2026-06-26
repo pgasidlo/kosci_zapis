@@ -102,10 +102,12 @@
       return true;
     } catch (e) { return false; }
   }
-  function announceTurn(name) {
+  function doneVerb(name) { return /a\s*$/i.test(name || "") ? "skończyła" : "skończył"; }   // odmiana wg końcówki imienia
+  function announceTurn(myName, prevName) {
     vibe();
+    var msg = (prevName ? prevName + " " + doneVerb(prevName) + " swój ruch. " : "") + "Twoja kolej" + (myName ? ", " + myName : "");
     var started = false;
-    var tried = speakNow("Twoja kolej" + (name ? ", " + name : ""), function () { started = true; });
+    var tried = speakNow(msg, function () { started = true; });
     if (!tried) { beepNow(); return; }
     setTimeout(function () { if (!started) beepNow(); }, 450);   // mowa w tle zablokowana → awaryjny ping
   }
@@ -170,7 +172,8 @@
     var before = order[(idx - 1 + order.length) % order.length];
     var sig = JSON.stringify(grids[before] || {});
     if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) {
-      announceTurn(((curSession.players || {})[myPid] || {}).name); flashTurn();
+      var pls = curSession.players || {};
+      announceTurn((pls[myPid] || {}).name, (pls[before] || {}).name); flashTurn();
     }
     pingPrevBefore = before; pingPrevSig = sig;
   }
@@ -384,7 +387,9 @@
     for (var fi = 0; fi < fseg.length; fi++) fseg[fi].onclick = function () { floorMode = this.getAttribute("data-fm"); try { localStorage.setItem("kosci_floorMode", floorMode); } catch (e) {} renderGame(sid, myPid); };
     var obtns = document.querySelectorAll(".obtn");
     for (var oi = 0; oi < obtns.length; oi++) obtns[oi].onclick = function () { moveOrder(sid, turnOrder, this.getAttribute("data-pid"), this.getAttribute("data-mv")); };
-    var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { primeTTS(); announceTurn(players[myPid].name); };
+    var myIdxT = turnOrder.indexOf(myPid);
+    var prevPidT = (myIdxT >= 0 && turnOrder.length >= 2) ? turnOrder[(myIdxT - 1 + turnOrder.length) % turnOrder.length] : null;
+    var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { primeTTS(); announceTurn(players[myPid].name, prevPidT ? players[prevPidT].name : null); };
     var vo = document.getElementById("voiceOn");
     if (vo) vo.onchange = function () { voiceOn = this.checked; try { localStorage.setItem("kosci_voice", voiceOn ? "1" : "0"); } catch (e) {} if (voiceOn) primeTTS(); };
     var tm = document.getElementById("tableMode");
