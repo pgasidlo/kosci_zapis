@@ -59,12 +59,45 @@
     o.connect(g); g.connect(ctx.destination);
     o.start(at); o.stop(at + 0.24);
   }
-  function ping() {
-    try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {}   // zapas, gdy dźwięk wyciszony
+  function vibe() { try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {} }
+  function beepNow() {
     var ctx = initAudio(); if (!ctx) return;
     function play() { try { var t = ctx.currentTime; beep(ctx, t); beep(ctx, t + 0.28); } catch (e) {} }
     if (ctx.state === "suspended" && ctx.resume) { ctx.resume().then(play, play); }  // poczekaj na odblokowanie
     else play();
+  }
+  function ping() { vibe(); beepNow(); }
+
+  // Zapowiedź głosowa „Twoja kolej, <imię>" (Web Speech API). Brak głosu PL → zwykły ping.
+  var voiceOn = (function () { try { return localStorage.getItem("kosci_voice") !== "0"; } catch (e) { return true; } })();
+  var ttsVoice = null, ttsPrimed = false;
+  function pickVoice() {
+    try {
+      var vs = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      for (var i = 0; i < vs.length; i++) if ((vs[i].lang || "").toLowerCase().indexOf("pl") === 0) { ttsVoice = vs[i]; return; }
+    } catch (e) {}
+  }
+  if (window.speechSynthesis) { pickVoice(); try { window.speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {} }
+  function canSpeak() { return voiceOn && window.speechSynthesis && typeof SpeechSynthesisUtterance !== "undefined"; }
+  function primeTTS() {   // „rozgrzewka" głosu w obrębie gestu, by późniejsza zapowiedź zagrała
+    if (ttsPrimed || !window.speechSynthesis) return;
+    ttsPrimed = true;
+    try { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) {}
+  }
+  function speak(text) {
+    if (!canSpeak()) return false;
+    try {
+      if (!ttsVoice) pickVoice();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "pl-PL"; if (ttsVoice) u.voice = ttsVoice;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  }
+  function announceTurn(name) {
+    vibe();
+    if (!speak("Twoja kolej" + (name ? ", " + name : ""))) beepNow();   // brak mowy → dźwięk
   }
 
   // Tryb stołowy: ekran nie gaśnie (Wake Lock) + kontekst audio trzymany „przy życiu",
@@ -126,7 +159,9 @@
     if (finished || idx < 0 || order.length < 2) { pingPrevBefore = null; pingPrevSig = null; return; }
     var before = order[(idx - 1 + order.length) % order.length];
     var sig = JSON.stringify(grids[before] || {});
-    if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) { ping(); flashTurn(); }
+    if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) {
+      announceTurn(((curSession.players || {})[myPid] || {}).name); flashTurn();
+    }
     pingPrevBefore = before; pingPrevSig = sig;
   }
 
@@ -286,8 +321,9 @@
       '<button data-fm="oczka"' + (floorMode === "oczka" ? ' class="on"' : "") + ">oczka</button>" +
       '<button data-fm="punkty"' + (floorMode === "punkty" ? ' class="on"' : "") + ">punkty</button></span></div>";
     h += '<div class="optrow"><label class="tbl"><input type="checkbox" id="tableMode"' + (tableMode ? " checked" : "") + "> Tryb stołowy — nie wygaszaj ekranu i przypominaj o kolejce</label></div>";
-    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span>' +
-      '<button class="btn btn-sm" id="pingTest" type="button">🔔 Test dźwięku</button></div><div class="orderlist">';
+    h += '<div class="optrow"><label class="tbl"><input type="checkbox" id="voiceOn"' + (voiceOn ? " checked" : "") + "> Zapowiedź głosem („Twoja kolej, " + esc(players[myPid].name) + "”)</label>" +
+      '<button class="btn btn-sm" id="pingTest" type="button">🔔 Test</button></div>';
+    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span></div><div class="orderlist">';
     turnOrder.forEach(function (pid, i) {
       h += '<div class="orow' + (pid === myPid ? " me" : "") + '"><span>' + (i + 1) + ". " + esc(players[pid].name) + "</span><span>" +
         '<button class="obtn" data-mv="up" data-pid="' + pid + '"' + (i === 0 ? " disabled" : "") + ">▲</button>" +
@@ -311,7 +347,9 @@
     for (var fi = 0; fi < fseg.length; fi++) fseg[fi].onclick = function () { floorMode = this.getAttribute("data-fm"); try { localStorage.setItem("kosci_floorMode", floorMode); } catch (e) {} renderGame(sid, myPid); };
     var obtns = document.querySelectorAll(".obtn");
     for (var oi = 0; oi < obtns.length; oi++) obtns[oi].onclick = function () { moveOrder(sid, turnOrder, this.getAttribute("data-pid"), this.getAttribute("data-mv")); };
-    var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { ping(); };
+    var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { primeTTS(); announceTurn(players[myPid].name); };
+    var vo = document.getElementById("voiceOn");
+    if (vo) vo.onchange = function () { voiceOn = this.checked; try { localStorage.setItem("kosci_voice", voiceOn ? "1" : "0"); } catch (e) {} if (voiceOn) primeTTS(); };
     var tm = document.getElementById("tableMode");
     if (tm) tm.onchange = function () { tableMode = this.checked; try { localStorage.setItem("kosci_tableMode", tableMode ? "1" : "0"); } catch (e) {} applyTableMode(); };
     restoreFocus(focus);
@@ -561,7 +599,7 @@
     if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }
   });
   window.addEventListener("scroll", hidePopover, true);
-  function onUserGesture() { initAudio(); if (tableMode) { startKeepAlive(); acquireWakeLock(); } }
+  function onUserGesture() { initAudio(); primeTTS(); if (tableMode) { startKeepAlive(); acquireWakeLock(); } }
   ["pointerdown", "touchend", "keydown"].forEach(function (ev) {   // odblokuj audio przy każdym geście
     window.addEventListener(ev, onUserGesture, { passive: true });
   });
