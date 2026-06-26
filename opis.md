@@ -31,6 +31,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 | `css/styles.css` | style (jasny motyw, układ mobilny) |
 | `test/rules.node.js` | testy silnika reguł (uruchamiane w Node) |
 | `deploy.ps1` | wdrożenie z auto-podbiciem wersji zasobów |
+| `database.rules.json` | reguły bezpieczeństwa Realtime Database (do wklejenia w konsoli) |
 | `opis.md`, `zapis.md`, `yams-zasady.md` | dokumentacja |
 
 ## Model danych (Firebase Realtime Database)

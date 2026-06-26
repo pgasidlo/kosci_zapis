@@ -1,0 +1,40 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "sessions": {
+      "$sid": {
+        ".read": true,
+        ".write": true,
+        ".validate": "$sid.length >= 4 && $sid.length <= 16 && newData.hasChildren()",
+        "meta": {
+          "status": { ".validate": "newData.val() === 'active' || newData.val() === 'finished'" },
+          "createdAt": { ".validate": "newData.isNumber()" },
+          "weights": {
+            "$col": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" }
+          },
+          "$other": { ".validate": false }
+        },
+        "players": {
+          "$pid": {
+            "name": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "$other": { ".validate": false }
+          }
+        },
+        "grids": {
+          "$pid": {
+            "$col": {
+              "$row": {
+                ".validate": "(newData.isNumber() && newData.val() >= 0 && newData.val() <= 300) || newData.val() === 'X'"
+              }
+            }
+          }
+        },
+        "presence": {
+          "$pid": { ".validate": "newData.isString() && newData.val().length <= 64" }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

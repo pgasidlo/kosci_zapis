@@ -36,12 +36,10 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 Otwórz `index.html` w przeglądarce (działa też przez `file://`) albo wystaw serwerem:
 `python -m http.server` lub `npx serve`.
 
-## Konfiguracja Firebase
-Reguły bazy (Realtime Database → Rules):
-```json
-{ "rules": { "sessions": { "$sid": { ".read": true, ".write": true } } } }
-```
-`apiKey` w `js/db.js` jest jawny z założenia (bezpieczeństwo zapewniają reguły).
+## Bezpieczeństwo i konfiguracja Firebase
+- **`apiKey` w `js/db.js` jest jawny z założenia** — w aplikacjach webowych config Firebase jest publiczny (to identyfikatory, nie sekrety; przeglądarka i tak go potrzebuje). Bezpieczeństwa pilnują **reguły bazy**.
+- **Reguły bazy (realny strażnik):** w pliku [`database.rules.json`](database.rules.json). Wklej je w Firebase Console → Realtime Database → **Rules** → **Publish**. Ograniczają dostęp do `sessions/<klucz>` i walidują kształt (typy pól, limity długości, brak obcych kluczy).
+- **Opcjonalnie — ograniczenie klucza API:** Google Cloud Console → APIs & Services → Credentials → klucz „Browser key" → Application restrictions → Websites → `https://mgrzemow.github.io/*`. (Dla RTDB bez logowania klucz i tak nie bramkuje bazy — robią to reguły — ale to dobra higiena na wypadek włączenia Auth.)
 
 ## Wdrożenie
 Skrypt `deploy.ps1` podbija wersję zasobów (`?v=` w `index.html`) na znacznik czasu, commituje i wypycha — dzięki temu po zwykłym odświeżeniu w przeglądarce ładuje się najnowsza wersja (cache-busting). Użycie:
