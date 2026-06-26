@@ -169,6 +169,26 @@
     pingPrevBefore = before; pingPrevSig = sig;
   }
 
+  // Wykryj komórki zmienione od ostatniej aktualizacji (dowolny gracz) — do obwódki „ostatnio edytowane".
+  var gridsSnap = null, lastEditKeys = [];
+  function cellVal(grids, pid, col, row) { return grids[pid] && grids[pid][col] && grids[pid][col][row]; }
+  function detectEdits() {
+    var grids = curSession.grids || {};
+    if (gridsSnap !== null) {
+      var changed = [], seen = {}, p, ci, ri, col, row;
+      for (p in gridsSnap) seen[p] = 1;
+      for (p in grids) seen[p] = 1;
+      for (p in seen)
+        for (ci = 0; ci < R.COLS.length; ci++)
+          for (ri = 0; ri < R.ROWS.length; ri++) {
+            col = R.COLS[ci]; row = R.ROWS[ri];
+            if (cellVal(grids, p, col, row) !== cellVal(gridsSnap, p, col, row)) changed.push(p + "|" + col + "|" + row);
+          }
+      if (changed.length) lastEditKeys = changed;
+    }
+    gridsSnap = JSON.parse(JSON.stringify(grids));
+  }
+
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;
   var unsub = null, unsubPres = null, claimed = false, errorMsg = null, errTimer = null;
 
@@ -182,6 +202,7 @@
     if (unsubPres) { unsubPres(); unsubPres = null; }
     curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
     pingPrevBefore = null; pingPrevSig = null;
+    gridsSnap = null; lastEditKeys = [];
     var sid = parseHash();
     curSid = sid;
     if (!sid) { renderStart(); return; }
@@ -203,6 +224,7 @@
     if (!activeTab) activeTab = myPid;
     autoFinishIfDone(sid);
     maybePing(myPid);
+    detectEdits();
     renderGame(sid, myPid);
   }
 
@@ -371,13 +393,13 @@
       h += '<th title="' + esc(COL_FULL[c]) + '"><div class="csym">' + (COL_SYM[c] || "&nbsp;") + '</div><div class="cw">×' + (weights[c] || "?") + "</div></th>";
     });
     h += "</tr></thead><tbody>";
-    R.UPPER.forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    R.UPPER.forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, "", viewPid); });
     h += compRow("Σ", "Suma szkółki (nominały 1–6)", score, "szkolka", "tot");
     h += compRow("bonus", "Premia za szkółkę: ≥60→+30, ≥70→+50, ≥80→+100", score, "premia", "tot");
     h += '<tr class="kreska"><td colspan="7"></td></tr>';
-    h += dataRow("minus", grid, grids, editable, myPid, "pair");
-    h += dataRow("plus", grid, grids, editable, myPid, "pair");
-    ["full", "kareta", "strit", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, ""); });
+    h += dataRow("minus", grid, grids, editable, myPid, "pair", viewPid);
+    h += dataRow("plus", grid, grids, editable, myPid, "pair", viewPid);
+    ["full", "kareta", "strit", "malusie", "poker"].forEach(function (r) { h += dataRow(r, grid, grids, editable, myPid, "", viewPid); });
     h += compRow("+200", "Premia za kolumnę: szkółka ≥60 i cały dół bez skreśleń", score, "premia200", "bonus");
     h += compRow("Σ//10", "Wynik kolumny = (szkółka + premia + dół + 200) × waga ÷ 10 (zaokrąglone)", score, "wynik", "win");
     var players = curSession.players || {}, st = standings[viewPid];
@@ -405,12 +427,13 @@
     R.COLS.forEach(function (c) { h += "<td><span class=\"out\">" + score.cols[c][kind] + "</span></td>"; });
     return h + "</tr>";
   }
-  function dataRow(row, grid, grids, editable, myPid, cls) {
+  function dataRow(row, grid, grids, editable, myPid, cls, viewPid) {
     var h = '<tr' + (cls ? ' class="' + cls + '"' : "") + '><td class="fig" title="' + esc(R.ROW_LABELS[row] + " — " + R.ROW_HINT[row]) + '">' + ROW_SHORT[row] + "</td>";
     R.COLS.forEach(function (c) {
       var v = (grid[c] || {})[row];
       var tip = cellOwners(grids, c, row);
-      h += "<td" + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
+      var hot = lastEditKeys.indexOf(viewPid + "|" + c + "|" + row) >= 0;
+      h += "<td" + (hot ? ' class="lastedit"' : "") + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + cellHTML(c, row, v, grid, grids, editable, myPid) + "</td>";
     });
     return h + "</tr>";
   }

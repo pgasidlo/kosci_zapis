@@ -67,6 +67,7 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13.5
 .cinp:focus{outline:none;border-color:#378add;box-shadow:0 0 0 2px rgba(55,138,221,.25)}
 .cinp.crossed{color:var(--t-err);font-weight:700;border-color:#e0b4b4;background:#fcf2f2}
 .cinp.err{border-color:var(--t-err);box-shadow:0 0 0 2px rgba(163,45,45,.2)}
+.card td.lastedit{box-shadow:inset 0 0 0 2px #e07b00;background:#fff6e3}
 .cinp::placeholder{color:#86837a;font-size:11.5px;font-weight:600}
 .locked{color:var(--t3)}
 .ro{font-size:13.5px}
