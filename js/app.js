@@ -48,18 +48,23 @@
   function initAudio() {
     if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; } }
     if (audioCtx && audioCtx.state === "suspended") { try { audioCtx.resume(); } catch (e) {} }
+    return audioCtx;
+  }
+  function beep(ctx, at) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.3, at + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.22);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(at); o.stop(at + 0.24);
   }
   function ping() {
-    initAudio(); if (!audioCtx) return;
-    try {
-      var t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = "sine"; o.frequency.value = 880;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(t); o.stop(t + 0.3);
-    } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate([120, 60, 120]); } catch (e) {}   // zapas, gdy dźwięk wyciszony
+    var ctx = initAudio(); if (!ctx) return;
+    function play() { try { var t = ctx.currentTime; beep(ctx, t); beep(ctx, t + 0.28); } catch (e) {} }
+    if (ctx.state === "suspended" && ctx.resume) { ctx.resume().then(play, play); }  // poczekaj na odblokowanie
+    else play();
   }
   // Kolejność graczy: meta.order (z domyślką = kolejność kluczy graczy).
   function getOrder(session, playerIds) {
@@ -241,7 +246,8 @@
       '<span class="seg2" id="floorSeg">' +
       '<button data-fm="oczka"' + (floorMode === "oczka" ? ' class="on"' : "") + ">oczka</button>" +
       '<button data-fm="punkty"' + (floorMode === "punkty" ? ' class="on"' : "") + ">punkty</button></span></div>";
-    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span></div><div class="orderlist">';
+    h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span>' +
+      '<button class="btn btn-sm" id="pingTest" type="button">🔔 Test dźwięku</button></div><div class="orderlist">';
     turnOrder.forEach(function (pid, i) {
       h += '<div class="orow' + (pid === myPid ? " me" : "") + '"><span>' + (i + 1) + ". " + esc(players[pid].name) + "</span><span>" +
         '<button class="obtn" data-mv="up" data-pid="' + pid + '"' + (i === 0 ? " disabled" : "") + ">▲</button>" +
@@ -265,6 +271,7 @@
     for (var fi = 0; fi < fseg.length; fi++) fseg[fi].onclick = function () { floorMode = this.getAttribute("data-fm"); try { localStorage.setItem("kosci_floorMode", floorMode); } catch (e) {} renderGame(sid, myPid); };
     var obtns = document.querySelectorAll(".obtn");
     for (var oi = 0; oi < obtns.length; oi++) obtns[oi].onclick = function () { moveOrder(sid, turnOrder, this.getAttribute("data-pid"), this.getAttribute("data-mv")); };
+    var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { ping(); };
     restoreFocus(focus);
   }
 
@@ -512,6 +519,9 @@
     if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }
   });
   window.addEventListener("scroll", hidePopover, true);
+  ["pointerdown", "touchend", "keydown"].forEach(function (ev) {   // odblokuj audio przy każdym geście
+    window.addEventListener(ev, initAudio, { passive: true });
+  });
 
   window.addEventListener("hashchange", route);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
