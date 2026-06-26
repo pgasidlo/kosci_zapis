@@ -86,7 +86,7 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:16.5
 .cinp.err{border-color:var(--t-err);box-shadow:0 0 0 2px rgba(163,45,45,.25)}
 .card td.lastedit{box-shadow:inset 0 0 0 2px var(--le-bd);background:var(--le-bg)}
 .cinp::placeholder{color:var(--ph);font-size:11.5px;font-weight:600}
-.locked{color:var(--t3)}
+.locked{color:var(--ph);font-size:11.5px;font-weight:600}
 .ro{font-size:16.5px}
 .ro.x{color:var(--t-err);font-weight:700}
 .out{font-weight:800;font-size:17px}
@@ -145,7 +145,7 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:16.5
   table.card{font-size:15.5px}
   .fig{width:46px;font-size:13px;padding-left:2px}
   .cinp{height:31px;font-size:17px}
-  .cinp::placeholder{font-size:10.5px}
+  .cinp::placeholder,.locked{font-size:10.5px}
   .csym{font-size:14px}
   .topbar h1{font-size:15px}
 }
