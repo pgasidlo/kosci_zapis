@@ -29,7 +29,7 @@ Webowa aplikacja do liczenia punktów w domowej grze w kości (wariant z 6 kolum
 | `js/rules.js` | czysta logika: punktacja, walidacja, aktywne pola, skreślanie pary +/− (bez DOM/Firebase) |
 | `js/db.js` | warstwa Firebase: sesje, zapisy, obecność |
 | `js/app.js` | UI: ekrany, zakładki, walidacja na żywo, dymki |
-| `css/styles.css` | style (jasny motyw, układ mobilny) |
+| `css/styles.css` | style (motyw jasny i ciemny wg ustawień systemu, układ mobilny) |
 | `test/rules.node.js` | testy silnika reguł (uruchamiane w Node) |
 | `deploy.ps1` | wdrożenie z auto-podbiciem wersji zasobów |
 | `database.rules.json` | reguły bezpieczeństwa Realtime Database (do wklejenia w konsoli) |
