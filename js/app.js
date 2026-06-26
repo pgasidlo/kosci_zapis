@@ -66,6 +66,45 @@
     if (ctx.state === "suspended" && ctx.resume) { ctx.resume().then(play, play); }  // poczekaj na odblokowanie
     else play();
   }
+
+  // Tryb stołowy: ekran nie gaśnie (Wake Lock) + kontekst audio trzymany „przy życiu",
+  // żeby ping zagrał sam, gdy Twoja kolej, bez dotykania ekranu (dopóki apka jest na wierzchu).
+  var wakeLock = null, keepNode = null, flashTimer = null;
+  var tableMode = (function () { try { return localStorage.getItem("kosci_tableMode") === "1"; } catch (e) { return false; } })();
+  function startKeepAlive() {
+    var ctx = initAudio(); if (!ctx || keepNode) return;
+    try {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      g.gain.value = 0.0001; o.frequency.value = 30;                 // niesłyszalne
+      o.connect(g); g.connect(ctx.destination); o.start();
+      keepNode = o;
+    } catch (e) {}
+  }
+  function stopKeepAlive() { try { if (keepNode) { keepNode.stop(); keepNode = null; } } catch (e) {} }
+  function acquireWakeLock() {
+    if (!tableMode || wakeLock || !("wakeLock" in navigator)) return;
+    try {
+      navigator.wakeLock.request("screen").then(function (wl) {
+        wakeLock = wl;
+        wakeLock.addEventListener("release", function () { wakeLock = null; });
+      }, function () {});
+    } catch (e) {}
+  }
+  function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
+  function applyTableMode() {
+    if (tableMode) { initAudio(); startKeepAlive(); acquireWakeLock(); }
+    else { stopKeepAlive(); releaseWakeLock(); }
+  }
+  function flashTurn() {
+    try {
+      var el = document.getElementById("turnBanner");
+      if (!el) { el = document.createElement("div"); el.id = "turnBanner"; document.body.appendChild(el); }
+      el.textContent = "🎲 Twoja kolej!";
+      el.className = "show";
+      if (flashTimer) clearTimeout(flashTimer);
+      flashTimer = setTimeout(function () { el.className = ""; }, 3500);
+    } catch (e) {}
+  }
   // Kolejność graczy: meta.order (z domyślką = kolejność kluczy graczy).
   function getOrder(session, playerIds) {
     var o = (session && session.meta && session.meta.order) || [], res = [], i;
@@ -87,7 +126,7 @@
     if (finished || idx < 0 || order.length < 2) { pingPrevBefore = null; pingPrevSig = null; return; }
     var before = order[(idx - 1 + order.length) % order.length];
     var sig = JSON.stringify(grids[before] || {});
-    if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) ping();
+    if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) { ping(); flashTurn(); }
     pingPrevBefore = before; pingPrevSig = sig;
   }
 
@@ -246,6 +285,7 @@
       '<span class="seg2" id="floorSeg">' +
       '<button data-fm="oczka"' + (floorMode === "oczka" ? ' class="on"' : "") + ">oczka</button>" +
       '<button data-fm="punkty"' + (floorMode === "punkty" ? ' class="on"' : "") + ">punkty</button></span></div>";
+    h += '<div class="optrow"><label class="tbl"><input type="checkbox" id="tableMode"' + (tableMode ? " checked" : "") + "> Tryb stołowy — nie wygaszaj ekranu i przypominaj o kolejce</label></div>";
     h += '<div class="optrow"><span>Kolejność graczy (kolejka pingu):</span>' +
       '<button class="btn btn-sm" id="pingTest" type="button">🔔 Test dźwięku</button></div><div class="orderlist">';
     turnOrder.forEach(function (pid, i) {
@@ -272,6 +312,8 @@
     var obtns = document.querySelectorAll(".obtn");
     for (var oi = 0; oi < obtns.length; oi++) obtns[oi].onclick = function () { moveOrder(sid, turnOrder, this.getAttribute("data-pid"), this.getAttribute("data-mv")); };
     var pt = document.getElementById("pingTest"); if (pt) pt.onclick = function () { ping(); };
+    var tm = document.getElementById("tableMode");
+    if (tm) tm.onchange = function () { tableMode = this.checked; try { localStorage.setItem("kosci_tableMode", tableMode ? "1" : "0"); } catch (e) {} applyTableMode(); };
     restoreFocus(focus);
   }
 
@@ -519,11 +561,16 @@
     if (hit) { var t = hit.getAttribute("title"); if (t) showPopover(hit, t); }
   });
   window.addEventListener("scroll", hidePopover, true);
+  function onUserGesture() { initAudio(); if (tableMode) { startKeepAlive(); acquireWakeLock(); } }
   ["pointerdown", "touchend", "keydown"].forEach(function (ev) {   // odblokuj audio przy każdym geście
-    window.addEventListener(ev, initAudio, { passive: true });
+    window.addEventListener(ev, onUserGesture, { passive: true });
+  });
+  document.addEventListener("visibilitychange", function () {       // po powrocie na wierzch — wznów blokadę/audio
+    if (document.visibilityState === "visible" && tableMode) { initAudio(); startKeepAlive(); acquireWakeLock(); }
   });
 
   window.addEventListener("hashchange", route);
+  applyTableMode();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
   else route();
 })();
