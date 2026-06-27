@@ -213,7 +213,7 @@
       '<button data-np="4">4</button><button data-np="5">5</button><button data-np="6">6</button>' +
       '<button data-np="7">7</button><button data-np="8">8</button><button data-np="9">9</button>' +
       '<button data-np="X" class="np-x">X</button><button data-np="0">0</button><button data-np="back" class="np-back">←</button></div>' +
-      '<button class="np-ok" data-np="ok">✓ OK</button>';
+      '<div class="np-bottom"><button class="np-ok" data-np="ok">✓ OK</button><button class="np-clr" data-np="clr">wyczyść</button></div>';
     el.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-np]");
       if (btn) { e.preventDefault(); e.stopPropagation(); npKey(btn.getAttribute("data-np")); }
@@ -267,6 +267,7 @@
   function npKey(key) {
     if (!npState) return;
     if (key === "close") { closeNumpad(); return; }
+    if (key === "clr") { DB.clearCell(curSid, myPidFor(curSid), npState.col, npState.row); closeNumpad(); return; }
     if (key === "back") { npState.buf = npState.buf.slice(0, -1); updateNpDisplay(); return; }
     if (key === "X") { npState.buf = "X"; updateNpDisplay(); return; }
     if (key === "ok") {
@@ -327,6 +328,7 @@
         '<span class="dp-val">= ' + val + "</span></button>";
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
     opts.innerHTML = h;
     el.classList.add("show");
     highlightNpCell();
@@ -349,6 +351,7 @@
   }
   function dpSelect(val) {
     if (!dpState) return;
+    if (val === "") { DB.clearCell(curSid, myPidFor(curSid), dpState.col, dpState.row); closeDicePick(); return; }
     var fake = {value: val, dataset: {col: dpState.col, row: dpState.row}};
     commit(curSid, myPidFor(curSid), fake);
     closeDicePick();
