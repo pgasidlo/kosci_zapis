@@ -376,22 +376,21 @@
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
     var opts = document.getElementById("dpOpts");
     opts.className = "dp-opts dp-full";
-    var h = "";
-    for (var a = 1; a <= 6; a++) {
-      h += '<div class="fg-label">trójka ' + a + ":</div>";
-      for (var b = 1; b <= 6; b++) {
-        var pips = 3 * a + 2 * b;
-        var val = pips + 20;
-        var dis = fl > 0 && val < fl;
-        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
-        h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
-          '<span class="fg-combo">' + a + "+" + b + "</span>" +
-          '<span class="dp-val">= ' + pips + "</span></button>";
-      }
-    }
+    dpState.ft = null; dpState.fp = null;
+    var h = '<div class="ff"><div class="ff-col"><div class="ff-hdr">trójka</div>';
+    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="dp-dice">' + i + '</span></button>';
+    h += '</div><div class="ff-mid"><div class="ff-sum" id="ffSum">—</div></div><div class="ff-col"><div class="ff-hdr">para</div>';
+    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="dp-dice">' + j + '</span></button>';
+    h += '</div></div>';
     h += '<button data-dv="X" class="dp-x">X</button>';
     if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
     opts.innerHTML = h;
+    opts.querySelectorAll("[data-ft]").forEach(function(btn) {
+      btn.addEventListener("click", function() { fullTap("ft", parseInt(btn.dataset.ft)); });
+    });
+    opts.querySelectorAll("[data-fp]").forEach(function(btn) {
+      btn.addEventListener("click", function() { fullTap("fp", parseInt(btn.dataset.fp)); });
+    });
     el.classList.add("show");
     highlightNpCell();
     document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
@@ -400,6 +399,35 @@
       var rect = inp.getBoundingClientRect();
       if (rect.bottom > window.innerHeight - (el.offsetHeight || 250) - 20)
         inp.scrollIntoView({block: "center", behavior: "smooth"});
+    }
+  }
+
+  function fullTap(side, val) {
+    if (!dpState) return;
+    if (side === "ft") dpState.ft = val;
+    else dpState.fp = val;
+    var el = document.getElementById("dpOpts");
+    el.querySelectorAll("[data-ft]").forEach(function(b) { b.classList.toggle("dp-sel", parseInt(b.dataset.ft) === dpState.ft); });
+    el.querySelectorAll("[data-fp]").forEach(function(b) { b.classList.toggle("dp-sel", parseInt(b.dataset.fp) === dpState.fp); });
+    var sum = document.getElementById("ffSum");
+    if (dpState.ft != null && dpState.fp != null) {
+      var pips = 3 * dpState.ft + 2 * dpState.fp;
+      sum.textContent = "= " + pips;
+      var grids = curSession.grids || {}, pid = myPidFor(curSid);
+      var fl = R.floorEff(grids, pid, dpState.col, dpState.row);
+      var finalVal = pips + 20;
+      if (fl > 0 && finalVal < fl) { sum.textContent = "< próg"; return; }
+      setTimeout(function() {
+        var fake = {value: String(pips), dataset: {col: dpState.col, row: dpState.row}};
+        commit(curSid, myPidFor(curSid), fake);
+        closeDicePick();
+      }, 350);
+    } else if (dpState.ft != null) {
+      sum.textContent = "3×" + dpState.ft;
+    } else if (dpState.fp != null) {
+      sum.textContent = "2×" + dpState.fp;
+    } else {
+      sum.textContent = "—";
     }
   }
 
