@@ -224,7 +224,7 @@
   function openNumpad(col, row) {
     if (row.charAt(0) === "j") { openDicePick(col, row); return; }
     if (row === "full") { openFullPick(col, row); return; }
-    if (row === "strit" || row === "kareta" || row === "poker" || row === "malusie") { openFigurePick(col, row); return; }
+    if (row === "strit" || row === "kareta" || row === "poker" || row === "malusie" || row === "plus" || row === "minus") { openFigurePick(col, row); return; }
     closeDicePick();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
     var grid = grids[pid] || {};
@@ -414,6 +414,13 @@
         h += '<button data-dv="' + m + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
           '<span class="dp-dice">' + m + '</span>' +
           '<span class="dp-val">' + m + ' oczek → ' + mv + ' pkt</span></button>';
+      }
+    } else if (row === "plus" || row === "minus") {
+      for (var pm = 20; pm <= 30; pm++) {
+        var dis = fl > 0 && pm < fl;
+        var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pm;
+        h += '<button data-dv="' + pm + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
+          '<span class="dp-dice">' + pm + '</span></button>';
       }
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
