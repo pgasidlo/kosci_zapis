@@ -306,6 +306,12 @@
     document.body.appendChild(el);
     return el;
   }
+  function diceWrap(icon, count) {
+    if (count <= 3) return Array(count + 1).join(icon);
+    var top = Array(4).join(icon);
+    var bot = Array(count - 3 + 1).join(icon);
+    return top + "<br>" + bot;
+  }
   function openDicePick(col, row) {
     closeNumpad();
     var nom = parseInt(row.charAt(1));
@@ -328,7 +334,7 @@
       var val = i * nom;
       var dis = fl > 0 && val < fl;
       var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
-      var icon = i === 0 ? "0" : Array(i + 1).join(DICE_ICON[nom]);
+      var icon = i === 0 ? "0" : diceWrap(DICE_ICON[nom], i);
       h += '<button data-dv="' + val + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
         '<span class="dp-dice">' + icon + "</span>" +
         '<span class="dp-val">= ' + val + "</span></button>";
@@ -385,8 +391,9 @@
       for (var s = 0; s < so.length; s++) {
         var sv = so[s].p + 30, dis = fl > 0 && sv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === sv;
+        var dd = so[s].d, top = dd.slice(0, 3), bot = dd.slice(3);
         h += '<button data-dv="' + so[s].p + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="fg-strit">' + so[s].d + '</span>' +
+          '<span class="fg-strit">' + top + '<br>' + bot + '</span>' +
           '<span class="dp-val">' + so[s].lbl + ' = ' + so[s].p + '</span></button>';
       }
     } else if (row === "kareta") {
@@ -395,7 +402,7 @@
         var kp = 4 * k, kv = kp + 30, dis = fl > 0 && kv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === kv;
         h += '<button data-dv="' + kp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="fg-strit">' + Array(5).join(DI[k]) + '</span>' +
+          '<span class="fg-strit">' + diceWrap(DI[k], 4) + '</span>' +
           '<span class="dp-val">= ' + kp + '</span></button>';
       }
     } else if (row === "poker") {
@@ -404,7 +411,7 @@
         var pp = 5 * p, pv = pp + 70, dis = fl > 0 && pv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pv;
         h += '<button data-dv="' + pp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="fg-strit">' + Array(6).join(DI2[p]) + '</span>' +
+          '<span class="fg-strit">' + diceWrap(DI2[p], 5) + '</span>' +
           '<span class="dp-val">= ' + pp + '</span></button>';
       }
     } else if (row === "malusie") {
