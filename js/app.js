@@ -416,7 +416,8 @@
           '<span class="dp-val">' + m + ' oczek → ' + mv + ' pkt</span></button>';
       }
     } else if (row === "plus" || row === "minus") {
-      for (var pm = 20; pm <= 30; pm++) {
+      var pmMin = row === "plus" ? 21 : 20, pmMax = row === "plus" ? 30 : 29;
+      for (var pm = pmMin; pm <= pmMax; pm++) {
         var dis = fl > 0 && pm < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pm;
         h += '<button data-dv="' + pm + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
