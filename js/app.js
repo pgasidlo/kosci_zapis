@@ -645,6 +645,12 @@
     var maxT = -Infinity;
     playerIds.forEach(function (pid) { if (standings[pid].total > maxT) maxT = standings[pid].total; });
     var turnOrder = getOrder(curSession, playerIds);
+    var curTurn = (curSession.meta && curSession.meta.turn) || turnOrder[0];
+    if (playerIds.indexOf(curTurn) < 0) curTurn = turnOrder[0];
+    var curTurnName = players[curTurn] ? players[curTurn].name : "?";
+    var isMyTurn = curTurn === myPid;
+    h += '<div class="turn-bar"><span class="turn-label">🎲 Kolej: <strong' + (isMyTurn ? ' class="turn-me"' : '') + '>' + esc(curTurnName) + '</strong></span>' +
+      '<button class="btn btn-sm turn-next" id="nextTurnBtn">Następny ▶</button></div>';
     h += '<div class="tabs">';
     var order = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
@@ -687,6 +693,11 @@
 
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
+    document.getElementById("nextTurnBtn").onclick = function () {
+      var idx = turnOrder.indexOf(curTurn);
+      var next = turnOrder[(idx + 1) % turnOrder.length];
+      DB.setTurn(sid, next);
+    };
     document.getElementById("changeBtn").onclick = function () {
       if (!confirm("Zmienić gracza? Zwolni to Twoje imię dla innych.")) return;
       DB.releasePresence(sid, myPid);

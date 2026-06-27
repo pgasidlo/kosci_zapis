@@ -60,6 +60,9 @@
   function setOrder(sid, order) {
     return db.ref("sessions/" + sid + "/meta/order").set(order);
   }
+  function setTurn(sid, pid) {
+    return db.ref("sessions/" + sid + "/meta/turn").set(pid);
+  }
 
   // Obecność — do ostrzeżenia „imię używane na innym urządzeniu”.
   function claimPresence(sid, pid, clientId) {
@@ -86,6 +89,7 @@
     clearCell: clearCell,
     setStatus: setStatus,
     setOrder: setOrder,
+    setTurn: setTurn,
     claimPresence: claimPresence,
     watchPresence: watchPresence
   };
