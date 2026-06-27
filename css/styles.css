@@ -177,12 +177,15 @@ td.npactive{box-shadow:inset 0 0 0 2px var(--focus)!important;background:var(--f
 .dp-full{display:block!important}
 .ff{display:flex;gap:8px;align-items:stretch}
 .ff-col{flex:1;display:flex;flex-direction:column;gap:5px}
+.ff-tri{flex:1.5}
 .ff-hdr{font-size:12px;font-weight:700;color:var(--t3);text-align:center;text-transform:uppercase;letter-spacing:.5px;padding-bottom:2px}
 .ff-btn{font-family:inherit;padding:10px 0;border:1px solid var(--bd2);border-radius:var(--r);background:var(--surface2);color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center}
 .ff-btn:active{background:var(--info-bg);color:var(--t-info)}
 .ff-btn.dp-sel{background:var(--info-bg)!important;border-color:var(--focus)!important;color:var(--t-info)!important}
 .ff-mid{display:flex;align-items:center;justify-content:center;min-width:56px}
 .ff-sum{font-size:18px;font-weight:800;color:var(--t2);text-align:center}
+.ff-foot{display:flex;gap:6px;margin-top:8px}
+.ff-x{flex:1;width:100%;padding:12px 0!important;font-size:20px!important}
 
 @media (max-width:480px){
   body{padding:7px 5px}
