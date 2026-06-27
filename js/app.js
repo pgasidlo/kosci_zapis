@@ -222,6 +222,8 @@
     return el;
   }
   function openNumpad(col, row) {
+    if (row.charAt(0) === "j") { openDicePick(col, row); return; }
+    closeDicePick();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
     var grid = grids[pid] || {};
     var v = (grid[col] || {})[row], buf = "";
@@ -257,8 +259,9 @@
   function highlightNpCell() {
     var old = document.querySelector("td.npactive");
     if (old) old.classList.remove("npactive");
-    if (!npState) return;
-    var inp = document.querySelector('#cardArea input.cinp[data-col="' + npState.col + '"][data-row="' + npState.row + '"]');
+    var st = npState || dpState;
+    if (!st) return;
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + st.col + '"][data-row="' + st.row + '"]');
     if (inp) { var td = inp.closest("td"); if (td) td.classList.add("npactive"); }
   }
   function npKey(key) {
@@ -281,6 +284,76 @@
     if (d) d.textContent = npState && npState.buf ? npState.buf : "—";
   }
 
+  // ── Dice picker (szkółka j1–j6: jedno tapnięcie = gotowe) ──
+  var dpState = null;
+  function ensureDicePick() {
+    var el = document.getElementById("dicepick");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "dicepick";
+    el.innerHTML = '<div class="np-head"><span class="np-field" id="dpField"></span><span class="np-hint" id="dpHint"></span>' +
+      '<button class="np-close" data-dpc="1">×</button></div>' +
+      '<div class="np-others" id="dpOthers"></div>' +
+      '<div id="dpOpts" class="dp-opts"></div>';
+    el.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-dv]");
+      if (btn && !btn.disabled) { e.preventDefault(); e.stopPropagation(); dpSelect(btn.getAttribute("data-dv")); return; }
+      if (e.target.closest("[data-dpc]")) { e.preventDefault(); e.stopPropagation(); closeDicePick(); }
+    });
+    document.body.appendChild(el);
+    return el;
+  }
+  function openDicePick(col, row) {
+    closeNumpad();
+    var nom = parseInt(row.charAt(1));
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var grid = grids[pid] || {};
+    var v = (grid[col] || {})[row];
+    var fl = R.floorEff(grids, pid, col, row);
+    dpState = {col: col, row: row};
+    var el = ensureDicePick();
+    document.getElementById("dpField").textContent = (ROW_SHORT[row] || row) + " · " + (COL_SYM[col] ? COL_SYM[col] + " " : "") + (COL_FULL[col] || col);
+    document.getElementById("dpHint").textContent = floorPlaceholder(row, fl);
+    var others = cellOwnersOthers(grids, col, row, pid);
+    var oEl = document.getElementById("dpOthers");
+    oEl.textContent = others; oEl.style.display = others ? "block" : "none";
+    var opts = document.getElementById("dpOpts"), h = "";
+    for (var i = 0; i <= 5; i++) {
+      var val = i * nom;
+      var dis = fl > 0 && val < fl;
+      var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
+      h += '<button data-dv="' + val + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
+        '<span class="dp-dice">' + i + "</span>" +
+        '<span class="dp-val">= ' + val + "</span></button>";
+    }
+    h += '<button data-dv="X" class="dp-x">X</button>';
+    opts.innerHTML = h;
+    el.classList.add("show");
+    highlightNpCell();
+    document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + col + '"][data-row="' + row + '"]');
+    if (inp) {
+      var rect = inp.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - (el.offsetHeight || 250) - 20)
+        inp.scrollIntoView({block: "center", behavior: "smooth"});
+    }
+  }
+  function closeDicePick() {
+    dpState = null;
+    var el = document.getElementById("dicepick");
+    if (el) el.classList.remove("show");
+    if (!npState) {
+      var c = document.querySelector("td.npactive"); if (c) c.classList.remove("npactive");
+      document.body.style.paddingBottom = "";
+    }
+  }
+  function dpSelect(val) {
+    if (!dpState) return;
+    var fake = {value: val, dataset: {col: dpState.col, row: dpState.row}};
+    commit(curSid, myPidFor(curSid), fake);
+    closeDicePick();
+  }
+
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;
   var unsub = null, unsubPres = null, claimed = false, errorMsg = null, errTimer = null;
 
@@ -290,7 +363,7 @@
   }
 
   function route() {
-    closeNumpad();
+    closeNumpad(); closeDicePick();
     if (unsub) { unsub(); unsub = null; }
     if (unsubPres) { unsubPres(); unsubPres = null; }
     curSession = null; curPresence = {}; activeTab = null; claimed = false; errorMsg = null;
@@ -465,7 +538,7 @@
       onSession();
     };
     var tabs = document.querySelectorAll(".tab");
-    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { closeNumpad(); activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
+    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { closeNumpad(); closeDicePick(); activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
     // Swipe między kartami graczy
     (function () {
@@ -739,6 +812,8 @@
     initAudio();
     var npEl = document.getElementById("numpad");
     if (npState && npEl && !npEl.contains(e.target) && !(e.target.classList && e.target.classList.contains("cinp"))) closeNumpad();
+    var dpEl = document.getElementById("dicepick");
+    if (dpState && dpEl && !dpEl.contains(e.target) && !(e.target.classList && e.target.classList.contains("cinp"))) closeDicePick();
     var p = document.getElementById("cellpop");
     if (p && p.contains(e.target)) return;
     if (e.target.tagName === "INPUT") return;
