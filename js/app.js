@@ -322,13 +322,15 @@
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
     var opts = document.getElementById("dpOpts");
     opts.className = "dp-opts";
+    var DICE_ICON = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
     var h = "";
     for (var i = 0; i <= 5; i++) {
       var val = i * nom;
       var dis = fl > 0 && val < fl;
       var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
+      var icon = i === 0 ? "0" : Array(i + 1).join(DICE_ICON[nom]);
       h += '<button data-dv="' + val + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
-        '<span class="dp-dice">' + i + "</span>" +
+        '<span class="dp-dice">' + icon + "</span>" +
         '<span class="dp-val">= ' + val + "</span></button>";
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
@@ -388,20 +390,22 @@
           '<span class="dp-val">' + so[s].lbl + ' = ' + so[s].p + '</span></button>';
       }
     } else if (row === "kareta") {
+      var DI = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
       for (var k = 1; k <= 6; k++) {
         var kp = 4 * k, kv = kp + 30, dis = fl > 0 && kv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === kv;
         h += '<button data-dv="' + kp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="dp-dice">' + k + '</span>' +
-          '<span class="dp-val">4×' + k + ' = ' + kp + '</span></button>';
+          '<span class="fg-strit">' + Array(5).join(DI[k]) + '</span>' +
+          '<span class="dp-val">= ' + kp + '</span></button>';
       }
     } else if (row === "poker") {
+      var DI2 = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
       for (var p = 1; p <= 6; p++) {
         var pp = 5 * p, pv = pp + 70, dis = fl > 0 && pv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === pv;
         h += '<button data-dv="' + pp + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="dp-dice">' + p + '</span>' +
-          '<span class="dp-val">5×' + p + ' = ' + pp + '</span></button>';
+          '<span class="fg-strit">' + Array(6).join(DI2[p]) + '</span>' +
+          '<span class="dp-val">= ' + pp + '</span></button>';
       }
     } else if (row === "malusie") {
       for (var m = 5; m <= 8; m++) {
@@ -444,9 +448,10 @@
     opts.className = "dp-opts dp-full";
     dpState.ft = null; dpState.fp = null;
     var h = '<div class="ff"><div class="ff-col ff-tri"><div class="ff-hdr">trójka</div>';
-    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="dp-dice">' + i + '</span></button>';
+    var FDI = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="dp-dice">' + FDI[i] + '</span></button>';
     h += '</div><div class="ff-mid"><div class="ff-sum" id="ffSum">—</div></div><div class="ff-col"><div class="ff-hdr">para</div>';
-    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="dp-dice">' + j + '</span></button>';
+    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="dp-dice">' + FDI[j] + '</span></button>';
     h += '</div></div><div class="ff-foot">';
     h += '<button data-dv="X" class="dp-x ff-x">X</button>';
     if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
