@@ -223,6 +223,7 @@
   }
   function openNumpad(col, row) {
     if (row.charAt(0) === "j") { openDicePick(col, row); return; }
+    if (row === "full") { openFullPick(col, row); return; }
     closeDicePick();
     var grids = curSession.grids || {}, pid = myPidFor(curSid);
     var grid = grids[pid] || {};
@@ -352,9 +353,62 @@
   function dpSelect(val) {
     if (!dpState) return;
     if (val === "") { DB.clearCell(curSid, myPidFor(curSid), dpState.col, dpState.row); closeDicePick(); return; }
+    if (/^ft\d$/.test(val)) { dpState.fullTriple = parseInt(val.charAt(2)); renderFullStep2(dpState.fullTriple); return; }
+    if (val === "ft-back") { dpState.fullTriple = null; renderFullStep1(); return; }
     var fake = {value: val, dataset: {col: dpState.col, row: dpState.row}};
     commit(curSid, myPidFor(curSid), fake);
     closeDicePick();
+  }
+
+  // ── Full picker (3×a + 2×b, dwa tapnięcia) ──
+  function openFullPick(col, row) {
+    closeNumpad();
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var fl = R.floorEff(grids, pid, col, row);
+    dpState = {col: col, row: row, fullTriple: null};
+    var el = ensureDicePick();
+    document.getElementById("dpHint").textContent = floorPlaceholder(row, fl);
+    var others = cellOwnersOthers(grids, col, row, pid);
+    var oEl = document.getElementById("dpOthers");
+    oEl.textContent = others; oEl.style.display = others ? "block" : "none";
+    renderFullStep1();
+    el.classList.add("show");
+    highlightNpCell();
+    document.body.style.paddingBottom = (el.offsetHeight + 10) + "px";
+    var inp = document.querySelector('#cardArea input.cinp[data-col="' + col + '"][data-row="' + row + '"]');
+    if (inp) {
+      var rect = inp.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight - (el.offsetHeight || 250) - 20)
+        inp.scrollIntoView({block: "center", behavior: "smooth"});
+    }
+  }
+  function renderFullStep1() {
+    document.getElementById("dpField").textContent = "full — trójka z:";
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var v = dpState && grids[pid] && grids[pid][dpState.col] && grids[pid][dpState.col][dpState.row];
+    var opts = document.getElementById("dpOpts"), h = "";
+    for (var a = 1; a <= 6; a++)
+      h += '<button data-dv="ft' + a + '"><span class="dp-dice">' + a + "</span></button>";
+    h += '<button data-dv="X" class="dp-x">X</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
+    opts.innerHTML = h;
+  }
+  function renderFullStep2(triple) {
+    document.getElementById("dpField").textContent = "full 3×" + triple + " — para z:";
+    var grids = curSession.grids || {}, pid = myPidFor(curSid);
+    var fl = R.floorEff(grids, pid, dpState.col, dpState.row);
+    var opts = document.getElementById("dpOpts"), h = "";
+    for (var b = 1; b <= 6; b++) {
+      if (b === triple) continue;
+      var pips = 3 * triple + 2 * b;
+      var val = pips + 20;
+      var dis = fl > 0 && val < fl;
+      h += '<button data-dv="' + pips + '"' + (dis ? " disabled" : "") + ">" +
+        '<span class="dp-dice">' + b + "</span>" +
+        '<span class="dp-val">= ' + pips + " oczek</span></button>";
+    }
+    h += '<button data-dv="ft-back" class="dp-clr">← wróć</button>';
+    opts.innerHTML = h;
   }
 
   var curSid = null, curSession = null, curPresence = {}, activeTab = null;
