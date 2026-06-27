@@ -14,8 +14,8 @@ W sumach `X` oraz puste liczą się jako **0**.
 W polach **strit / full / kareta / poker / malusie** wpisujesz **oczka z kości**, a pole pokazuje wartość końcową (`Rules.isPipRow`, `Rules.valueFromPips`, `Rules.pipsFromValue`). Wpisywanie odbywa się przez **dedykowane pickery** (panele na dole ekranu) zamiast klawiatury systemowej — każdy wiersz ma własny picker dopasowany do dozwolonych wartości:
 - **Szkółka (j1–j6):** 6 przycisków (0–5 kości danego nominału) z ikonkami ⚀⚁⚂⚃⚄⚅
 - **Full:** dwie kolumny obok siebie — „trójka" (3 ikonki, 1–6) i „para" (2 ikonki, 1–6); tap po jednym z każdej → auto-commit
-- **Kareta:** 6 przycisków (4 ikonki danego nominału)
-- **Poker:** 6 przycisków (5 ikonek danego nominału)
+- **Kareta:** 6 przycisków (4 ikonki danego nominału, łamane 2+2)
+- **Poker:** 6 przycisków (5 ikonek danego nominału, łamane 3+2)
 - **Strit:** 2 przyciski — mały (⚀⚁⚂⚃⚄) i duży (⚁⚂⚃⚄⚅)
 - **Malusie:** 4 przyciski (5–8 oczek → 75–60 pkt)
 - **+/−:** przyciski 20–29 (minus) lub 21–30 (plus)

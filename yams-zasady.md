@@ -7,7 +7,7 @@
 ## Materiał i przebieg
 - **5 kości** sześciennych. **Każdy gracz ma własną kartę**; karty są zależne (próg „≥ X" — patrz zapis.md).
 - Tura: **3 rzuty** (pierwszy wszystkimi, w 2. i 3. odkładasz wybrane i przerzucasz resztę). Po turze **wpisujesz wynik do jednego pola** dedykowanym pickerem (panel na dole ekranu z dużymi przyciskami i ikonkami kości ⚀⚁⚂⚃⚄⚅) albo **skreślasz** pole (przycisk X). Każdy wiersz ma własny picker dopasowany do dozwolonych wartości.
-- **Kolejka:** nad zakładkami graczy pasek **🎲 Kolej: [imię]** — zsynchronizowany między telefonami. Tap na pasek przesuwa na następnego gracza. Próba wpisu poza swoją kolejką → komunikat błędu. Aplikacja wykrywa nierówną liczbę wpisów (różnica ≥ 2) i wyświetla ostrzeżenie.
+- **Kolejka:** zakładka gracza, którego kolej, ma **zieloną ramkę** — zsynchronizowana między telefonami. Tap na tę zakładkę przesuwa na następnego gracza. Próba wpisu poza swoją kolejką → komunikat błędu. Aplikacja wykrywa nierówną liczbę wpisów (różnica ≥ 2) i wyświetla ostrzeżenie. Przycisk „wstecz" w przeglądarce nie opuszcza gry bez potwierdzenia.
 - **Koniec gry:** gdy u wszystkich każde pole jest wypełnione lub skreślone → **ranking** (ostateczne wyniki malejąco) u każdego.
 
 ## Kolumny (6) i kolejność wpisywania
