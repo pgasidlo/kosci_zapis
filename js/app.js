@@ -380,7 +380,6 @@
     for (var a = 1; a <= 6; a++) {
       h += '<div class="fg-label">trójka ' + a + ":</div>";
       for (var b = 1; b <= 6; b++) {
-        if (a === b) continue;
         var pips = 3 * a + 2 * b;
         var val = pips + 20;
         var dis = fl > 0 && val < fl;
