@@ -323,8 +323,9 @@
   }
   function diceWrap(icon, count) {
     if (count <= 3) return Array(count + 1).join(icon);
-    var top = Array(4).join(icon);
-    var bot = Array(count - 3 + 1).join(icon);
+    var half = Math.ceil(count / 2);
+    var top = Array(half + 1).join(icon);
+    var bot = Array(count - half + 1).join(icon);
     return top + "<br>" + bot;
   }
   function openDicePick(col, row) {
@@ -1052,6 +1053,16 @@
   applyTableMode();
   window.addEventListener("beforeunload", function (e) {
     if (curSid) { e.preventDefault(); e.returnValue = ""; }
+  });
+  var backWarn = 0;
+  history.pushState({kosci: true}, "");
+  window.addEventListener("popstate", function () {
+    if (!curSid) return;
+    var now = Date.now();
+    if (now - backWarn < 3000) return;
+    backWarn = now;
+    history.pushState({kosci: true}, "");
+    showError("Naciśnij ← jeszcze raz, aby wyjść");
   });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", route);
   else route();
