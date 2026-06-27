@@ -467,6 +467,28 @@
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { closeNumpad(); activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
     bindCardInputs(sid, myPid);
+    // Swipe między kartami graczy
+    (function () {
+      var area = document.getElementById("cardArea");
+      if (!area) return;
+      var sx = null, sy = null;
+      area.addEventListener("touchstart", function (e) {
+        if (npState) return;
+        var t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+      }, {passive: true});
+      area.addEventListener("touchend", function (e) {
+        if (sx === null || npState) return;
+        var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+        sx = null;
+        if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+        var pids = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
+        var ci = pids.indexOf(activeTab);
+        if (ci < 0) return;
+        var ni = dx < 0 ? ci + 1 : ci - 1;
+        if (ni < 0 || ni >= pids.length) return;
+        closeNumpad(); activeTab = pids[ni]; renderGame(sid, myPid);
+      }, {passive: true});
+    })();
     var thseg = document.querySelectorAll("#themeSeg button");
     for (var thi = 0; thi < thseg.length; thi++) thseg[thi].onclick = function () { theme = this.getAttribute("data-th"); try { localStorage.setItem("kosci_theme", theme); } catch (e) {} applyTheme(); renderGame(sid, myPid); };
     var fseg = document.querySelectorAll("#floorSeg button");
@@ -576,7 +598,7 @@
     }
     if (R.isActive(grid, col, row)) {
       var ph = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));
-      return '<input class="cinp" readonly data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
+      return '<input class="cinp cinp-active" readonly data-col="' + col + '" data-row="' + row + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">";
     }
     var lf = floorPlaceholder(row, R.floorEff(grids, myPid, col, row));   // próg widoczny też w polach jeszcze zablokowanych
     return '<span class="locked">' + (lf || "·") + "</span>";

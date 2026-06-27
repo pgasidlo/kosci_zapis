@@ -156,6 +156,7 @@ table.card{border-collapse:collapse;width:100%;table-layout:fixed;font-size:16.5
 .np-ok{width:100%;font-family:inherit;font-size:18px;font-weight:700;padding:14px 0;border:none;border-radius:var(--r);background:var(--info-bg);color:var(--t-info);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
 .np-ok:active{opacity:.8}
 td.npactive{box-shadow:inset 0 0 0 2px var(--focus)!important;background:var(--focus-ring)!important}
+.cinp-active{background:var(--ok-bg)!important;border-color:var(--t-ok)!important}
 
 @media (max-width:480px){
   body{padding:7px 5px}
