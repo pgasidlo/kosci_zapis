@@ -213,7 +213,7 @@
       '<button data-np="4">4</button><button data-np="5">5</button><button data-np="6">6</button>' +
       '<button data-np="7">7</button><button data-np="8">8</button><button data-np="9">9</button>' +
       '<button data-np="X" class="np-x">X</button><button data-np="0">0</button><button data-np="back" class="np-back">←</button></div>' +
-      '<div class="np-bottom"><button class="np-ok" data-np="ok">✓ OK</button><button class="np-clr" data-np="clr">wyczyść</button></div>';
+      '<div class="np-bottom"><button class="np-ok" data-np="ok">✓ OK</button><button class="np-clr" data-np="clr">🗑</button></div>';
     el.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-np]");
       if (btn) { e.preventDefault(); e.stopPropagation(); npKey(btn.getAttribute("data-np")); }
@@ -331,7 +331,7 @@
         '<span class="dp-val">= ' + val + "</span></button>";
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
-    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
     opts.innerHTML = h;
     el.classList.add("show");
     highlightNpCell();
@@ -383,7 +383,7 @@
     for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="dp-dice">' + j + '</span></button>';
     h += '</div></div><div class="ff-foot">';
     h += '<button data-dv="X" class="dp-x ff-x">X</button>';
-    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">wyczyść</button>';
+    if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
     h += '</div>';
     opts.innerHTML = h;
     opts.querySelectorAll("[data-ft]").forEach(function(btn) {
