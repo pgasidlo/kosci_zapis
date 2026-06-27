@@ -656,8 +656,7 @@
     if (playerIds.indexOf(curTurn) < 0) curTurn = turnOrder[0];
     var curTurnName = players[curTurn] ? players[curTurn].name : "?";
     var isMyTurn = curTurn === myPid;
-    h += '<div class="turn-bar"><span class="turn-label">🎲 Kolej: <strong' + (isMyTurn ? ' class="turn-me"' : '') + '>' + esc(curTurnName) + '</strong></span>' +
-      '<button class="btn btn-sm turn-next" id="nextTurnBtn">Następny ▶</button></div>';
+    h += '<div class="turn-bar" id="turnBar"><span class="turn-label">🎲 Kolej: <strong' + (isMyTurn ? ' class="turn-me"' : '') + '>' + esc(curTurnName) + '</strong></span></div>';
     h += '<div class="tabs">';
     var order = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
@@ -700,7 +699,7 @@
 
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
-    document.getElementById("nextTurnBtn").onclick = function () {
+    document.getElementById("turnBar").onclick = function () {
       var idx = turnOrder.indexOf(curTurn);
       var next = turnOrder[(idx + 1) % turnOrder.length];
       DB.setTurn(sid, next);

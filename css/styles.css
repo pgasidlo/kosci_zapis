@@ -62,10 +62,9 @@ h2{font-size:16px;font-weight:600;margin:0 0 10px}
 
 .topbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;flex-wrap:wrap}
 .topbar h1{font-size:16px}
-.turn-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin:0 0 6px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--bd2)}
+.turn-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin:0 0 6px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--bd2);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .turn-label{font-size:16px}
 .turn-me{color:var(--t-ok)}
-.turn-next{font-size:14px!important;padding:6px 14px!important}
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 8px}
 .tab{font-size:14px;padding:7px 12px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--surface);color:var(--t2);cursor:pointer;font-weight:600}
 .tab.active{background:var(--info-bg);color:var(--t-info);border-color:transparent;font-weight:700}
