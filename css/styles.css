@@ -66,6 +66,7 @@ h2{font-size:16px;font-weight:600;margin:0 0 10px}
 .tab{font-size:14px;padding:7px 12px;border-radius:var(--r);border:2px solid transparent;background:var(--surface);color:var(--t2);cursor:pointer;font-weight:600}
 .tab.turn{border-color:var(--t-ok);box-shadow:0 0 6px rgba(40,167,69,.45)}
 .tab.active{background:var(--info-bg);color:var(--t-info);border-color:transparent;font-weight:700}
+.tab.active.turn{border-color:var(--t-ok);box-shadow:0 0 8px rgba(40,167,69,.55)}
 .tab.me{font-weight:800}
 .tab .done{color:var(--t-ok);margin-left:4px}
 .tscore{font-size:13px;font-weight:700;color:var(--t2);margin-left:3px}
