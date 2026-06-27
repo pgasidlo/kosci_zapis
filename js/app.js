@@ -221,7 +221,22 @@
     document.body.appendChild(el);
     return el;
   }
+  function checkTurn() {
+    var players = curSession.players || {};
+    var playerIds = Object.keys(players);
+    if (playerIds.length < 2) return true;
+    var turnOrder = getOrder(curSession, playerIds);
+    var curTurn = (curSession.meta && curSession.meta.turn) || turnOrder[0];
+    var myPid = myPidFor(curSid);
+    if (curTurn !== myPid) {
+      var name = players[curTurn] ? players[curTurn].name : "?";
+      showError("Teraz kolej: " + name + "!");
+      return false;
+    }
+    return true;
+  }
   function openNumpad(col, row) {
+    if (!checkTurn()) return;
     if (row.charAt(0) === "j") { openDicePick(col, row); return; }
     if (row === "full") { openFullPick(col, row); return; }
     if (row === "strit" || row === "kareta" || row === "poker" || row === "malusie" || row === "plus" || row === "minus") { openFigurePick(col, row); return; }
