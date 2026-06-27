@@ -695,9 +695,6 @@
     var turnOrder = getOrder(curSession, playerIds);
     var curTurn = (curSession.meta && curSession.meta.turn) || turnOrder[0];
     if (playerIds.indexOf(curTurn) < 0) curTurn = turnOrder[0];
-    var curTurnName = players[curTurn] ? players[curTurn].name : "?";
-    var isMyTurn = curTurn === myPid;
-    h += '<div class="turn-bar" id="turnBar"><span class="turn-label">🎲 Kolej: <strong' + (isMyTurn ? ' class="turn-me"' : '') + '>' + esc(curTurnName) + '</strong></span></div>';
     h += '<div class="tabs">';
     var order = [myPid].concat(turnOrder.filter(function (p) { return p !== myPid; }));
     order.forEach(function (pid) {
@@ -705,7 +702,8 @@
       var done = R.cardComplete(grids[pid] || {});
       var marks = me ? "" : marksHTML(R.pairMarks(standings, myPid, pid));
       var lead = st.total === maxT;
-      h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + '" data-pid="' + pid + '">' +
+      var isTurn = pid === curTurn;
+      h += '<button class="tab' + (pid === activeTab ? " active" : "") + (me ? " me" : "") + (isTurn ? " turn" : "") + '" data-pid="' + pid + '">' +
         marks + esc(players[pid].name) + ' <span class="tscore' + (lead ? " lead" : "") + '">' + st.total + "</span>" +
         (done ? ' <span class="done">✓</span>' : "") + "</button>";
     });
@@ -740,11 +738,6 @@
 
     $app().innerHTML = h;
     document.getElementById("copyBtn").onclick = function () { copyLink(sid, this); };
-    document.getElementById("turnBar").onclick = function () {
-      var idx = turnOrder.indexOf(curTurn);
-      var next = turnOrder[(idx + 1) % turnOrder.length];
-      DB.setTurn(sid, next);
-    };
     document.getElementById("changeBtn").onclick = function () {
       if (!confirm("Zmienić gracza? Zwolni to Twoje imię dla innych.")) return;
       DB.releasePresence(sid, myPid);
@@ -753,7 +746,15 @@
       onSession();
     };
     var tabs = document.querySelectorAll(".tab");
-    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () { closeNumpad(); closeDicePick(); activeTab = this.getAttribute("data-pid"); renderGame(sid, myPid); };
+    for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () {
+      var pid = this.getAttribute("data-pid");
+      if (this.classList.contains("turn")) {
+        var idx = turnOrder.indexOf(curTurn);
+        var next = turnOrder[(idx + 1) % turnOrder.length];
+        DB.setTurn(sid, next);
+      }
+      closeNumpad(); closeDicePick(); activeTab = pid; renderGame(sid, myPid);
+    };
     bindCardInputs(sid, myPid);
     // Swipe między kartami graczy
     (function () {
