@@ -40,6 +40,11 @@
     if (!c) { c = DB.genKey(10); localStorage.setItem("kosci_cid", c); }
     return c;
   }
+  function goList() {
+    history.pushState(null, "", location.pathname);
+    route();
+  }
+  window.goList = goList;
   function myPidFor(sid) { return localStorage.getItem("kosci_pid_" + sid); }
   function setMyPid(sid, pid) { localStorage.setItem("kosci_pid_" + sid, pid); }
   function savedGames() { try { return JSON.parse(localStorage.getItem("kosci_games") || "[]"); } catch (e) { return []; } }
@@ -579,7 +584,7 @@
   function onSession() {
     var sid = curSid;
     if (!curSession) {
-      $app().innerHTML = '<div class="screen"><h2>Nie znaleziono gry</h2><p class="muted">Sprawdź link albo zacznij nową grę.</p><p><button class="btn btn-primary" onclick="location.hash=\'\'">← Lista gier</button></p></div>';
+      $app().innerHTML = '<div class="screen"><h2>Nie znaleziono gry</h2><p class="muted">Sprawdź link albo zacznij nową grę.</p><p><button class="btn btn-primary" onclick="goList()">← Lista gier</button></p></div>';
       return;
     }
     var myPid = myPidFor(sid);
@@ -676,7 +681,7 @@
     h += '<div class="row" style="margin-bottom:14px"><button class="btn btn-sm" id="addName">+ dodaj gracza</button></div>';
     h += '<button class="btn btn-primary" id="create">Utwórz grę</button>';
     h += '<p class="err-line" id="startErr" style="display:none"></p>';
-    h += '<p style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">← Lista gier</button></p>';
+    h += '<p style="margin-top:14px"><button class="btn btn-sm" onclick="goList()">← Lista gier</button></p>';
     h += "</div>";
     $app().innerHTML = h;
     addNameRow("Żaneta"); addNameRow("Anna"); addNameRow("Piotr"); addNameRow("Michał");
@@ -720,7 +725,7 @@
       h += '<button class="pick' + (busy ? " busy" : "") + '" data-pid="' + pid + '">' + esc(players[pid].name) + (busy ? ' <span class="muted">(zajęte)</span>' : "") + "</button>";
     });
     h += "</div>";
-    h += '<p class="row" style="margin-top:14px"><button class="btn btn-sm" onclick="location.hash=\'\'">← Lista gier</button></p>';
+    h += '<p class="row" style="margin-top:14px"><button class="btn btn-sm" onclick="goList()">← Lista gier</button></p>';
     h += "</div>";
     $app().innerHTML = h;
     var btns = document.querySelectorAll(".pick");
@@ -743,7 +748,7 @@
     var h = '<div class="topbar">';
     h += '<button class="btn btn-sm" id="copyBtn">Kopiuj link</button>';
     h += '<button class="btn btn-sm" id="changeBtn">Zmień gracza</button>';
-    h += '<button class="btn btn-sm" onclick="location.hash=\'\'">Lista gier</button></div>';
+    h += '<button class="btn btn-sm" onclick="goList()">Lista gier</button></div>';
 
     if (curPresence[myPid] && curPresence[myPid] !== clientId())
       h += '<div class="warn">Uwaga: pod Twoim imieniem gra ktoś jeszcze na innym urządzeniu. Wpisy mogą się nadpisywać.</div>';
