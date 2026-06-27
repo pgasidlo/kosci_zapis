@@ -184,6 +184,7 @@ td.npactive{box-shadow:inset 0 0 0 2px var(--focus)!important;background:var(--f
 .ff-btn.dp-sel{background:var(--info-bg)!important;border-color:var(--focus)!important;color:var(--t-info)!important}
 .ff-mid{display:flex;align-items:center;justify-content:center;min-width:56px}
 .ff-sum{font-size:18px;font-weight:800;color:var(--t2);text-align:center}
+.fg-strit{font-size:28px;letter-spacing:3px;line-height:1.1}
 .ff-foot{display:flex;gap:6px;margin-top:8px}
 .ff-x{flex:1;width:100%;padding:12px 0!important;font-size:20px!important}
 

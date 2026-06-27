@@ -384,8 +384,8 @@
         var sv = so[s].p + 30, dis = fl > 0 && sv < fl;
         var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === sv;
         h += '<button data-dv="' + so[s].p + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + '>' +
-          '<span class="dp-dice">' + so[s].lbl + '</span>' +
-          '<span class="dp-val">' + so[s].d + ' = ' + so[s].p + '</span></button>';
+          '<span class="fg-strit">' + so[s].d + '</span>' +
+          '<span class="dp-val">' + so[s].lbl + ' = ' + so[s].p + '</span></button>';
       }
     } else if (row === "kareta") {
       for (var k = 1; k <= 6; k++) {
