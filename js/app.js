@@ -183,11 +183,11 @@
     if (tableMode) { initAudio(); startKeepAlive(); acquireWakeLock(); }
     else { stopKeepAlive(); releaseWakeLock(); }
   }
-  function flashTurn() {
+  function flashTurn(name) {
     try {
       var el = document.getElementById("turnBanner");
       if (!el) { el = document.createElement("div"); el.id = "turnBanner"; document.body.appendChild(el); }
-      el.textContent = "🎲 Twoja kolej!";
+      el.textContent = "🎲 Twoja kolej" + (name ? ", " + vocative(name) : "") + "!";
       el.className = "show";
       if (flashTimer) clearTimeout(flashTimer);
       flashTimer = setTimeout(function () { el.className = ""; }, 3500);
@@ -236,7 +236,7 @@
     var sig = JSON.stringify(grids[before] || {});
     if (before === pingPrevBefore && pingPrevSig !== null && sig !== pingPrevSig) {
       var pls = curSession.players || {};
-      announceTurn((pls[myPid] || {}).name, (pls[before] || {}).name); flashTurn();
+      announceTurn((pls[myPid] || {}).name, (pls[before] || {}).name); flashTurn((pls[myPid] || {}).name);
     }
     pingPrevBefore = before; pingPrevSig = sig;
   }
