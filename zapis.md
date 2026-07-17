@@ -44,7 +44,7 @@ Pola **1–6**, **+**, **−** wpisuje się wprost (bez przelicznika). **Wewnęt
 | `malusie` | 100 − 5 × oczka (tylko 5–8 oczek) | 75 |
 | `poker` | suma 5 kości + 70 | 100 |
 
-Maksima w `Rules.MAXES`. Para **+/−** jest powiązana: skreślenie jednego **nie skreśla** automatycznie drugiego — gracz musi osobno skreślić partnera w następnej turze. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X (blokada liczbowego wpisu w `app.js`).
+Maksima w `Rules.MAXES`. Para **+/−** jest powiązana: skreślenie jednego **nie skreśla** automatycznie drugiego — każde skreślenie to **pełny ruch (przesuwa kolejkę)**, partnera skreślasz osobno w jednej z kolejnych swoich tur. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X (blokada liczbowego wpisu w `app.js`).
 
 ## Premie
 - **Premia za szkółkę** (osobno w każdej kolumnie, od sumy nominałów 1–6; `Rules.bonusSzkolka`): ≥ 60 → **+30**, ≥ 70 → **+50**, ≥ 80 → **+100**.
@@ -72,7 +72,7 @@ Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy `myPid`
 Liczone funkcją `Rules.pairMarks` ze `standings[myPid]` (kolumny z `doubled` + znak `value`); własna zakładka nie ma symboli.
 
 ## Próg „≥ X" między graczami
-W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. Próg „≥ X" jest widoczny **także w polach jeszcze zablokowanych** do edycji (nie tylko w aktywnych) — w każdej pustej komórce własnej karty. **Sprzężenie „+"/„−"** (`Rules.floorEff`): skoro „+" > „−", cudzy wpis w „−" podnosi też dolny próg mojego „+" — „+" ≥ (najwyższe cudze „−") + 1. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek). Jednostka podpowiedzi jest przełączalna **per gracz** (na dole ekranu): **oczka** (domyślnie) albo **punkty** (wartość z bonusem pola) — wtedy dla wszystkich pól „≥ X" w punktach.
+W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być niższa niż najwyższa, jaką wpisali tam **inni** gracze (`Rules.floorFor`). Pole skreślone (`X`) lub puste u innych **nie** podnosi progu. Przeliczane na żywo z aktualnego stanu sesji. Próg „≥ X" jest widoczny **także w polach jeszcze zablokowanych** do edycji (nie tylko w aktywnych) — w każdej pustej komórce własnej karty. **Sprzężenie „+"/„−"** (`Rules.floorEff`): skoro „+" > „−", zarówno cudzy, jak i **mój własny** wpis w „−" podnosi dolny próg mojego „+" — „+" ≥ max(najwyższe cudze „−", moje „−") + 1. W aplikacji: podpowiedź „≥ X" (dla **malusie**, gdzie mniej oczek = więcej punktów, podpowiedź „≤ N" oczek). Jednostka podpowiedzi jest przełączalna **per gracz** (na dole ekranu): **oczka** (domyślnie) albo **punkty** (wartość z bonusem pola) — wtedy dla wszystkich pól „≥ X" w punktach.
 
 ## Reguły walidacji (`Rules.validateCell`)
 1. **`X`** (skreślenie) — zawsze dozwolone (także poniżej progu).
@@ -80,11 +80,11 @@ W danym polu (ta sama figura, ta sama kolumna) wartość liczbowa nie może być
 3. Nie większa niż **max** i nie mniejsza niż **min** wiersza (`Rules.MAXES`, `Rules.MINS`): full ≥ 5 oczek (25), kareta ≥ 4 (34), poker ≥ 5 (75).
 4. **Dozwolone zbiory:** szkółka `j1…j6` — wielokrotność nominału (`Rules.NOMINAL`); **strit** — tylko 15 lub 20 oczek (45/50); **poker** — wielokrotność 5 oczek; **kareta** — wielokrotność 4 oczek (34…54); **malusie** — tylko 5–8 oczek (9+ = skreśl).
 5. Nie mniejsza niż **próg „≥ X"** od innych graczy.
-6. Dla `plus`/`minus`: ≥ 20 oraz „+" > „−"; dodatkowo „+" ≥ (najwyższe cudze „−") + 1 (`Rules.floorEff`).
+6. Dla `plus`/`minus`: ≥ 20 oraz „+" > „−"; dodatkowo „+" ≥ max(najwyższe cudze „−", moje „−") + 1 (`Rules.floorEff`).
 
-Pola oczkowe: wpisane **oczka** są najpierw przeliczane na wartość końcową, a walidacja działa na wartości końcowej. Edycja własnych, wypełnionych pól jest dozwolona — po zmianie obowiązuje ta sama walidacja.
+Pola oczkowe: wpisane **oczka** są najpierw przeliczane na wartość końcową, a walidacja działa na wartości końcowej. Edycja własnych, wypełnionych pól jest dozwolona (obowiązuje ta sama walidacja), ale podlega kolejce: **w swojej turze** edycja liczy się jako ruch i przesuwa kolejkę, a **poza turą** jest zablokowana. Do poprawienia wcześniejszego wpisu bez zmiany kolejki (także nie w swojej turze) służy tryb **„Poprawa wyniku"** — patrz [yams-zasady.md](yams-zasady.md).
 
 ## Skreślanie
 - Wpisanie `x`/`X` → pole pokazuje „X" i liczy się jako **0**.
-- Para „+"/„−": skreślenie jednego **nie skreśla** automatycznie drugiego. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X — gracz musi osobno je skreślić w następnej turze (nie traci ruchu). Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
+- Para „+"/„−": skreślenie jednego **nie skreśla** automatycznie drugiego. Każde skreślenie to **pełny ruch (przesuwa kolejkę)**; partnera skreślasz osobno w jednej z kolejnych swoich tur — „nie traci ruchu" znaczy, że nie tracisz prawa do jego zapisania później. Gdy partner jest skreślony, drugie pole dopuszcza wyłącznie X. Skreślone pole przestaje wyznaczać próg „≥ X" dla innych.
 - *Kiedy wolno skreślić* (kolejność w kolumnie, Anons po zapowiedzi, Drugi rzut nawet po 3. rzucie) to reguła gry — [yams-zasady.md](yams-zasady.md).

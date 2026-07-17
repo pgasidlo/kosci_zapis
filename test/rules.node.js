@@ -161,11 +161,8 @@ ok(R.cardComplete(fullGrid()), "pełna karta (liczby) → kompletna");
 var fgX = fullGrid(); fgX.free.j1 = "X";
 ok(R.cardComplete(fgX), "pełna karta ze skreśleniem → kompletna");
 
-/* ---- skreślanie pary +/- ---- */
-ok(R.crossedRows("plus").length === 2 && R.crossedRows("plus").indexOf("minus") >= 0, "crossedRows(+) zwraca pare [+,-]");
-ok(R.crossedRows("minus").indexOf("plus") >= 0, "crossedRows(-) zwraca pare [-,+]");
-eq(R.crossedRows("strit").length, 1, "crossedRows figury: brak powiazania");
-/* Uwaga: app.js NIE auto-skresla partnera - gracz skresla go osobno.
+/* ---- para +/- ----
+   app.js NIE auto-skresla partnera - gracz skresla go osobno (pelny ruch, przesuwa kolejke).
    Gdy partner skreslony, drugie pole dopuszcza wylacznie X (logika w app.js). */
 
 /* ---- wpisywanie oczek + bonus ---- */

@@ -204,9 +204,6 @@
     return true;
   }
 
-  // Skreślenie pola: które wiersze trzeba skreślić razem (para „+”/„−” skreśla się wspólnie).
-  function crossedRows(row) { return (row === "plus" || row === "minus") ? ["plus", "minus"] : [row]; }
-
   // Dublowanie: proporcja wyników ≥ 2× (0 vs >0 też liczy się jako dublowanie).
   function isDoubled(a, b) {
     var hi = Math.max(a, b), lo = Math.min(a, b);
@@ -271,7 +268,7 @@
     shuffleWeights: shuffleWeights, bonusSzkolka: bonusSzkolka,
     scoreColumn: scoreColumn, scoreCard: scoreCard,
     activeRows: activeRows, isActive: isActive,
-    floorFor: floorFor, floorEff: floorEff, validateCell: validateCell, cardComplete: cardComplete, crossedRows: crossedRows,
+    floorFor: floorFor, floorEff: floorEff, validateCell: validateCell, cardComplete: cardComplete,
     isDoubled: isDoubled, columnBases: columnBases, gameStandings: gameStandings, pairMarks: pairMarks
   };
 })();
