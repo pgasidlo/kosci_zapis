@@ -16,6 +16,7 @@
           "order": {
             "$i": { ".validate": "newData.isString() && newData.val().length <= 8" }
           },
+          "turn": { ".validate": "newData.isString() && newData.val().length <= 8" },
           "$other": { ".validate": false }
         },
         "players": {

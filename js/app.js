@@ -830,12 +830,8 @@
     };
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) tabs[i].onclick = function () {
+      // Tap w zakładkę = tylko podgląd karty danego gracza (nie zmienia kolejki).
       var pid = this.getAttribute("data-pid");
-      if (this.classList.contains("turn")) {
-        var idx = turnOrder.indexOf(curTurn);
-        var next = turnOrder[(idx + 1) % turnOrder.length];
-        DB.setTurn(sid, next);
-      }
       closeNumpad(); closeDicePick(); activeTab = pid; renderGame(sid, myPid);
     };
     bindCardInputs(sid, myPid);
