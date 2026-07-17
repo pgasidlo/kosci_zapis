@@ -119,9 +119,36 @@
     } catch (e) { return false; }
   }
   function doneVerb(name) { return /a\s*$/i.test(name || "") ? "skończyła" : "skończył"; }   // odmiana wg końcówki imienia
+  // Wołacz imienia (heurystyka PL): „Karolina”→„Karolino”, „Adam”→„Adamie”, „Piotr”→„Piotrze”.
+  // Odmienia tylko pierwszy człon; przy nietypowych imionach może być przybliżony.
+  function vocative(name) {
+    if (!name) return name;
+    var full = String(name).trim();
+    if (!full) return full;
+    var sp = full.search(/\s/), rest = "";
+    if (sp > 0) { rest = full.slice(sp); full = full.slice(0, sp); }
+    var low = full.toLowerCase(), last = low.slice(-1), stem = full.slice(0, -1), slow = low.slice(0, -1), out;
+    if (low.length < 2) return name;
+    if (last === "a") {                                   // żeńskie + męskie na -a (Kuba→Kubo)
+      if (/(si|ci|zi|dzi|ni|ś|ć|ź|ń)$/.test(slow) || (slow.slice(-1) === "l" && slow.length <= 2))
+        out = stem + "u";                                 // Kasia→Kasiu, Ania→Aniu, Ola→Olu, Ela→Elu
+      else out = stem + "o";                              // Karolina→Karolino, Anna→Anno, Marta→Marto
+    } else if (/[bcćdfghjklłmnńprstwzźż]$/.test(last)) {  // męskie na spółgłoskę
+      if (/eł$/.test(low)) out = full.slice(0, -2) + "le";        // Paweł→Pawle
+      else if (last === "ł") out = stem + "le";                   // Michał→Michale
+      else if (/ek$/.test(low)) out = full.slice(0, -2) + "ku";   // Marek→Marku, Tomek→Tomku
+      else if (last === "r") out = full + "ze";                   // Piotr→Piotrze, Igor→Igorze
+      else if (/(sz|cz|rz|dz|ż|dź|c|j|l|ń)$/.test(low) || /[gk]$/.test(last) || /ch$/.test(low))
+        out = full + "u";                                         // Tomasz→Tomaszu, Karol→Karolu, Maciej→Macieju, Ludwik→Ludwiku
+      else out = full + "ie";                                     // Adam→Adamie, Jan→Janie, Filip→Filipie
+    } else {
+      out = full;                                         // samogłoska/obce — bez zmian
+    }
+    return out + rest;
+  }
   function announceTurn(myName, prevName) {
     vibe();
-    var msg = (prevName ? prevName + " " + doneVerb(prevName) + " swój ruch. " : "") + "Twoja kolej" + (myName ? ", " + myName : "");
+    var msg = (prevName ? prevName + " " + doneVerb(prevName) + " swój ruch. " : "") + "Twoja kolej" + (myName ? ", " + vocative(myName) : "");
     var started = false;
     var tried = speakNow(msg, function () { started = true; });
     if (!tried) { beepNow(); return; }
