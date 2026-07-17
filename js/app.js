@@ -382,13 +382,13 @@
     opts.className = "dp-opts";
     var DICE_ICON = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
     var h = "";
-    for (var i = 0; i <= 5; i++) {
+    // Min. 1 kość — „0 oczek" wpisuje się skreśleniem (X), nie zerem.
+    for (var i = 1; i <= 5; i++) {
       var val = i * nom;
       var dis = fl > 0 && val < fl;
       var sel = R.isFilled(v) && !R.isCross(v) && Number(v) === val;
-      var icon = i === 0 ? "0" : diceWrap(DICE_ICON[nom], i);
       h += '<button data-dv="' + val + '"' + (dis ? " disabled" : "") + (sel ? ' class="dp-sel"' : "") + ">" +
-        '<span class="dp-dice">' + icon + "</span>" +
+        '<span class="dp-dice">' + diceWrap(DICE_ICON[nom], i) + "</span>" +
         '<span class="dp-val">= ' + val + "</span></button>";
     }
     h += '<button data-dv="X" class="dp-x">X</button>';
@@ -519,12 +519,20 @@
     oEl.textContent = others; oEl.style.display = others ? "block" : "none";
     var opts = document.getElementById("dpOpts");
     opts.className = "dp-opts dp-full";
-    dpState.ft = null; dpState.fp = null;
+    dpState.ft = null; dpState.fp = null; dpState.fl = fl;
     var h = '<div class="ff"><div class="ff-col ff-tri"><div class="ff-hdr">trójka</div>';
     var FDI = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-    for (var i = 1; i <= 6; i++) h += '<button class="ff-btn" data-ft="' + i + '"><span class="fg-strit">' + Array(4).join(FDI[i]) + '</span></button>';
+    // Wyszarz wartości, które nawet w najlepszej kombinacji (partner = 6) nie osiągną progu.
+    // full = 3×trójka + 2×para + 20; max para/trójka = 6.
+    for (var i = 1; i <= 6; i++) {
+      var triDis = fl > 0 && (3 * i + 2 * 6 + 20) < fl;
+      h += '<button class="ff-btn" data-ft="' + i + '"' + (triDis ? " disabled" : "") + '><span class="fg-strit">' + Array(4).join(FDI[i]) + '</span></button>';
+    }
     h += '</div><div class="ff-mid"><div class="ff-sum" id="ffSum">—</div></div><div class="ff-col"><div class="ff-hdr">para</div>';
-    for (var j = 1; j <= 6; j++) h += '<button class="ff-btn" data-fp="' + j + '"><span class="fg-strit">' + Array(3).join(FDI[j]) + '</span></button>';
+    for (var j = 1; j <= 6; j++) {
+      var parDis = fl > 0 && (3 * 6 + 2 * j + 20) < fl;
+      h += '<button class="ff-btn" data-fp="' + j + '"' + (parDis ? " disabled" : "") + '><span class="fg-strit">' + Array(3).join(FDI[j]) + '</span></button>';
+    }
     h += '</div></div><div class="ff-foot">';
     h += '<button data-dv="X" class="dp-x ff-x">X</button>';
     if (R.isFilled(v)) h += '<button data-dv="" class="dp-clr">🗑</button>';
@@ -552,8 +560,21 @@
     if (side === "ft") dpState.ft = val;
     else dpState.fp = val;
     var el = document.getElementById("dpOpts");
-    el.querySelectorAll("[data-ft]").forEach(function(b) { b.classList.toggle("dp-sel", parseInt(b.dataset.ft) === dpState.ft); });
-    el.querySelectorAll("[data-fp]").forEach(function(b) { b.classList.toggle("dp-sel", parseInt(b.dataset.fp) === dpState.fp); });
+    var fl = dpState.fl || 0;
+    // Wyszarz opcje niemożliwe do wpisania: względem wybranej wartości drugiej kolumny
+    // (albo najlepszej = 6, gdy jeszcze nic nie wybrano). Wybranego przycisku nie blokujemy.
+    el.querySelectorAll("[data-ft]").forEach(function(b) {
+      var a = parseInt(b.dataset.ft);
+      b.classList.toggle("dp-sel", a === dpState.ft);
+      var bestPara = dpState.fp != null ? dpState.fp : 6;
+      b.disabled = fl > 0 && a !== dpState.ft && (3 * a + 2 * bestPara + 20) < fl;
+    });
+    el.querySelectorAll("[data-fp]").forEach(function(b) {
+      var bp = parseInt(b.dataset.fp);
+      b.classList.toggle("dp-sel", bp === dpState.fp);
+      var bestTri = dpState.ft != null ? dpState.ft : 6;
+      b.disabled = fl > 0 && bp !== dpState.fp && (3 * bestTri + 2 * bp + 20) < fl;
+    });
     var sum = document.getElementById("ffSum");
     if (dpState.ft != null && dpState.fp != null) {
       var pips = 3 * dpState.ft + 2 * dpState.fp;
