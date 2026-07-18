@@ -240,8 +240,11 @@
           sumDiff += val;
           if (dbl) { if (myBase > ob) star = true; else if (ob > myBase) skull = true; }
         }
-        cols[col] = { base: myBase, diffs: diffs, final: myBase + sumDiff };
-        total += myBase + sumDiff;
+        // Σ ost. kolumny = suma różnic do przeciwników (z dublowaniem), BEZ bazy —
+        // baza jest już wliczona w każdą różnicę (mój − przeciwnik). Dzięki temu gra
+        // jest zero-sum: suma ostatecznych wyników wszystkich graczy = 0.
+        cols[col] = { base: myBase, diffs: diffs, final: sumDiff };
+        total += sumDiff;
       }
       out[pid] = { cols: cols, total: total, skull: skull, star: star };
     }
