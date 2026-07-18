@@ -62,8 +62,8 @@ To wartość **bazowa** kolumny (na karcie: **Σ//10**). Ostateczny wynik gracza
 Pod wynikiem bazowym, dla **każdego przeciwnika** (graczy − 1 wierszy) liczymy różnicę w **każdej kolumnie** (`Rules.columnBases`, `Rules.gameStandings`):
 - **różnica = mój wynik kolumny − wynik przeciwnika** (dodatnia podbija, ujemna obniża).
 - **Dublowanie:** jeśli proporcja wyników ≥ 2× (`Rules.isDoubled`; 0 vs >0 też), różnicę liczymy **×2**. Taki wpis jest pogrubiony — zielony na „+", czerwony na „−".
-- **Wynik ost. kolumny** (`Σ ost.`) = wynik bazowy + suma różnic do przeciwników (z dublowaniem).
-- **Ostateczny wynik gracza** = suma „wyników ost." z 6 kolumn.
+- **Wynik ost. kolumny** (`Σ ost.`) = suma różnic do przeciwników w tej kolumnie (z dublowaniem), **bez** wyniku bazowego — baza jest już wliczona w każdą różnicę (mój − przeciwnik).
+- **Ostateczny wynik gracza** = suma „wyników ost." z 6 kolumn. Gra jest **zero-sum**: suma ostatecznych wyników wszystkich graczy = 0.
 
 Symbole przy imieniu **przeciwnika** (zakładki i ranking, z perspektywy `myPid`); **liczba symboli = liczba kolumn**:
 - **★ złota gwiazdka** ×N — w N kolumnach **ja dubluję** tego przeciwnika.
