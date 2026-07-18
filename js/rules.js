@@ -10,7 +10,7 @@
   };
   var COL_HINT = {
     free: "dowolnie", down: "z góry", up: "z dołu",
-    harmony: "od środka", second: "po 2 rz.", anons: "anons"
+    harmony: "od −", second: "po 2 rz.", anons: "anons"
   };
 
   // 13 wierszy do wpisywania, od góry do dołu (kreska jest między indeksem 5 a 6)
@@ -118,8 +118,12 @@
       return [];
     }
     if (col === "harmony") {
-      for (i = 5; i >= 0; i--) { if (!filled(ROWS[i])) { res.push(ROWS[i]); break; } }   // w górę od środka
-      for (i = 6; i < ROWS.length; i++) { if (!filled(ROWS[i])) { res.push(ROWS[i]); break; } } // w dół od środka
+      // Start zawsze od „−” (minus, tuż pod kreską). Górę (od „6” w górę) odblokowuje
+      // dopiero wypełnienie/skreślenie „−”; wtedy równolegle otwiera się też „+” w dół.
+      if (filled("minus")) {
+        for (i = 5; i >= 0; i--) { if (!filled(ROWS[i])) { res.push(ROWS[i]); break; } } // w górę: j6..j1
+      }
+      for (i = 6; i < ROWS.length; i++) { if (!filled(ROWS[i])) { res.push(ROWS[i]); break; } } // w dół: minus, plus, …
       return res;
     }
     return [];

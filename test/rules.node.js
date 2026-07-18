@@ -79,12 +79,15 @@ eq(R.activeRows({ down: { j1: "X" } }, "down")[0], "j2", "Dół: skreślenie te�
 eq(R.activeRows(emptyGrid(), "up")[0], "poker", "Góra: najniższe puste");
 eq(R.activeRows({ up: { poker: 30 } }, "up")[0], "malusie", "Góra: po poker → malusie");
 var ah = R.activeRows(emptyGrid(), "harmony");
-ok(ah.length === 2 && ah.indexOf("j6") >= 0 && ah.indexOf("minus") >= 0, "Harmonia: start [j6, minus]");
-ok(R.activeRows({ harmony: { j6: 30 } }, "harmony").indexOf("j5") >= 0, "Harmonia: po j6 w górę → j5");
-ok(R.activeRows({ harmony: { minus: 20 } }, "harmony").indexOf("plus") >= 0, "Harmonia: po minus w dół → plus");
-var hUp = { harmony: {} }; R.UPPER.forEach(function (r) { hUp.harmony[r] = 5; });
-var ahUp = R.activeRows(hUp, "harmony");
-ok(ahUp.length === 1 && ahUp[0] === "minus", "Harmonia: górna wyczerpana → tylko dół (minus)");
+ok(ah.length === 1 && ah[0] === "minus", "Harmonia: start tylko [minus] (od „−”)");
+var ahAfterMinus = R.activeRows({ harmony: { minus: 20 } }, "harmony");
+ok(ahAfterMinus.length === 2 && ahAfterMinus.indexOf("j6") >= 0 && ahAfterMinus.indexOf("plus") >= 0,
+  "Harmonia: po „−” odblokowuje się góra (j6) i dół (plus)");
+var ahAfterCross = R.activeRows({ harmony: { minus: "X" } }, "harmony");
+ok(ahAfterCross.indexOf("j6") >= 0 && ahAfterCross.indexOf("plus") >= 0, "Harmonia: skreślenie „−” też odblokowuje górę i dół");
+ok(R.activeRows({ harmony: { minus: 20, j6: 30 } }, "harmony").indexOf("j5") >= 0, "Harmonia: po „−” i j6 w górę → j5");
+ok(R.activeRows({ harmony: { j6: 30 } }, "harmony").indexOf("j6") < 0 && R.activeRows({ harmony: {} }, "harmony").indexOf("j6") < 0,
+  "Harmonia: góra (6) zablokowana dopóki „−” puste");
 eq(R.activeRows(fullGrid(), "harmony").length, 0, "Harmonia: pełna kolumna → brak aktywnych");
 eq(R.activeRows(fullGrid(), "down").length, 0, "Dół: pełna kolumna → brak aktywnych");
 ok(R.isActive(emptyGrid(), "down", "j1") && !R.isActive(emptyGrid(), "down", "j2"), "isActive zgodne z activeRows");
