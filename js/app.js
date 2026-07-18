@@ -7,7 +7,7 @@
   var COL_SYM = { free: "", down: "↓", up: "↑", harmony: "↕", second: "2rz", anons: "A" };
   var COL_FULL = {
     free: "Wolne (dowolna kolejność)", down: "Dół (z góry na dół)", up: "Góra (z dołu do góry)",
-    harmony: "Harmonia (od środka w górę/dół)", second: "Drugi rzut (wpis po 2 rzutach)", anons: "Anons (zapowiedź po 1. rzucie)"
+    harmony: "Harmonia (start od „−”, potem w górę/dół)", second: "Drugi rzut (wpis po 2 rzutach)", anons: "Anons (zapowiedź po 1. rzucie)"
   };
   var ROW_SHORT = {
     j1: "1", j2: "2", j3: "3", j4: "4", j5: "5", j6: "6",

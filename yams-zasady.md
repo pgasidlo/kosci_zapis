@@ -20,12 +20,12 @@ Na start każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (
 | Wolne | dowolne puste pole (dowolna kolejność) |
 | Dół | z góry na dół (po kolei) |
 | Góra | z dołu do góry (po kolei) |
-| Harmonia | od **kreski** (środka) w górę **albo** w dół — rośnie w obie strony |
+| Harmonia | zaczynasz od **„−”** (tuż pod kreską); po jego wpisaniu (lub skreśleniu) rośnie w obie strony — w dół (**„+”**, figury) **oraz** w górę (**„6”** …), równolegle |
 | Drugi rzut | po **dokładnie 2 rzutach** |
 | Anons | po **1. rzucie** mówisz „Anons" i musisz w tej kolumnie zapisać |
 
 ## Układ karty (wiersze, od góry)
-1–6 (szkółka) · Suma szkółki + Premia (liczą się same) · **─── Kreska ───** (środek, start Harmonii) · **−** i **+** (pod kreską) · figury: **Full, Kareta, Strit, Malusie, Poker** · niżej wiersze wyniku (Σ//10, różnice do przeciwników, Σ ost.).
+1–6 (szkółka) · Suma szkółki + Premia (liczą się same) · **─── Kreska ───** (środek) · **−** i **+** (pod kreską; **„−” to start Harmonii**) · figury: **Full, Kareta, Strit, Malusie, Poker** · niżej wiersze wyniku (Σ//10, różnice do przeciwników, Σ ost.).
 
 ## Figury — co to za układy kości
 *(Ile punktów i jak wpisać — [zapis.md](zapis.md).)*
@@ -38,7 +38,7 @@ Na start każda kolumna dostaje **losowo jedną z wag: 8, 10, 12, 14, 16, 18** (
 - **Poker** — 5 jednakowych.
 
 ## Jak gra ma się do aplikacji
-- **Aplikacja pilnuje:** kolejności w kolumnach — odblokowuje tylko legalne pola (Dół z góry, Góra z dołu, Harmonia od środka; Wolne/Anons/Drugi rzut — dowolnie); progu „≥ X" na żywo; dozwolonych wartości, premii i wyniku (patrz zapis.md); wykrycia końca gry.
+- **Aplikacja pilnuje:** kolejności w kolumnach — odblokowuje tylko legalne pola (Dół z góry, Góra z dołu, Harmonia od „−” w obie strony; Wolne/Anons/Drugi rzut — dowolnie); progu „≥ X" na żywo; dozwolonych wartości, premii i wyniku (patrz zapis.md); wykrycia końca gry.
 - **Zostawia graczom** (apka nie widzi kości): **liczbę rzutów** i **deklarację „Anons"** — dlatego kolumny **Anons** i **Drugi rzut** mają w aplikacji dowolną kolejność.
 - **Skreślanie przy stole:** w kolumnach z kolejnością skreślasz tylko bieżące pole; w **Anonsie** — po zapowiedzi; wyjątek **Drugi rzut** — można skreślić nawet po 3. rzucie. (Mechanika „X = 0" — zapis.md.)
 - **Para +/−:** nie da się jej zostawić w stanie „jedno pole z wynikiem, drugie skreślone". Skreślenie jednego pola:
